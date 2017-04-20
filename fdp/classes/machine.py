@@ -160,15 +160,15 @@ class Machine(MutableMapping):
         """
         shots = []
         if shotlist:
-            if not isinstance(shotlist, (list,tuple)):
+            if not isinstance(shotlist, (list, tuple)):
                 shotlist = [shotlist]
             shots.extend(list(shotlist))
         if date:
-            if not isinstance(date, (list,tuple)):
+            if not isinstance(date, (list, tuple)):
                 date = [date]
             shots.extend(self._logbook.get_shotlist(date=list(date)))
         if xp:
-            if not isinstance(xp, (list,tuple)):
+            if not isinstance(xp, (list, tuple)):
                 xp = [xp]
             shots.extend(self._logbook.get_shotlist(xp=list(xp)))
         for shot in np.unique(shots):

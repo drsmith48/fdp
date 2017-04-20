@@ -23,7 +23,7 @@ class Logbook(object):
         self._shot_query_prefix = ''
 
         self._logbook_connection = None
-        #self._make_logbook_connection()
+        # self._make_logbook_connection()
 
         # dict of cached logbook entries
         # kw is shot, value is list of logbook entries
@@ -105,14 +105,16 @@ class Logbook(object):
             date = []
         if not xp:
             xp = []
-        if date and not isinstance(date, (list,tuple)):      # if it's just a single date
+        # if it's just a single date
+        if date and not isinstance(date, (list, tuple)):
             date = [date]   # put it into a list
         for d in date:
             query = ('{0} and rundate={1} ORDER BY shot ASC'.
                      format(self._shotlist_query_prefix, d))
             cursor.execute(query)
             rows.extend(cursor.fetchall())
-        if xp and not isinstance(xp, (list,tuple)):           # if it's just a single xp
+        # if it's just a single xp
+        if xp and not isinstance(xp, (list, tuple)):
             xp = [xp]             # put it into a list
         for x in xp:
             query = ('{0} and xp={1} ORDER BY shot ASC'.
@@ -126,7 +128,8 @@ class Logbook(object):
             day = rundate[6:8]
             row['rundate'] = datetime.date(int(year), int(month), int(day))
         # add shots to shotlist
-        shotlist.extend([row['shot'] for row in rows if row['shot'] is not None])
+        shotlist.extend([row['shot']
+                         for row in rows if row['shot'] is not None])
         cursor.close()
         return np.unique(shotlist)
 
