@@ -13,15 +13,15 @@ from .globals import FdpError
 MACHINES = ['nstxu', 'diiid', 'cmod']
 
 MDS_SERVERS = {
-    'nstxu': {'hostname':'skylark.pppl.gov',
-              'port':'8501'}
+    'nstxu': {'hostname': 'skylark.pppl.gov',
+              'port': '8501'}
 }
 
 EVENT_SERVERS = {
-    'nstxu': {'hostname':'skylark.pppl.gov',
-              'port':'8501'},
-    'ltx': {'hostname':'lithos.pppl.gov',
-            'port':'8000'}
+    'nstxu': {'hostname': 'skylark.pppl.gov',
+              'port': '8501'},
+    'ltx': {'hostname': 'lithos.pppl.gov',
+            'port': '8000'}
 }
 
 LOGBOOK_CREDENTIALS = {
