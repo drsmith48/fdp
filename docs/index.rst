@@ -13,7 +13,7 @@ Fusion Data Platform
 **Contents**
 
 .. toctree::
-    :maxdepth: 2
+    :maxdepth: 1
 
     Overview <overview>
     user_guide
