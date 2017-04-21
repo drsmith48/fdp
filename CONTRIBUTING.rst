@@ -6,20 +6,16 @@ How to contribute
 * Bugs and feature requests: https://github.com/Fusion-Data-Platform/fdp/issues
 * Google group: https://groups.google.com/forum/#!forum/fusion-data-platform
 
-**Code**
-
-Thank you for your interest in the FDP project.  To contribute to the FDP code base, fork the repo at Github and submit pull requests with your contributions.  Read more:
+**Workflow**: Thank you for your interest in the FDP project.  To contribute to the FDP code base, fork the FDP repo at Github, clone your personal repo, and submit pull requests with your contributions.  Read more:
 
 * https://guides.github.com/activities/forking/
 * https://help.github.com/articles/fork-a-repo/
 
-**Style**
+**Style**: Try to follow the `PEP8 style guide <https://www.python.org/dev/peps/pep-0008/>`_.  FDP uses ``flake8`` for PEP8 conformance and static code analysis.  To scan for PEP8 conformance, run ``make lint`` in the top-level directory.
 
-Try to follow the `PEP8 style guide <https://www.python.org/dev/peps/pep-0008/>`_.  To scan for PEP8 conformance, run ``make lint`` in the top-level directory.
+**Testing**: FDP uses ``pytest`` for testing and ``coverage`` for test coverage.  You can run the test suite with ``make test`` or ``pytest`` in the top-level directory, and you can run the test coverage scan with ``make coverage`` in the top-lelvel directory.  To read more about testing in FDP, see ``test/README.rst``.
 
-**Makefile utilities**
-
-The top-level ``Makefile`` contains several utilities for generating docs, code style/quality reviews, and versioning:
+**Makefile utilities**: The top-level ``Makefile`` contains several utilities for generating docs, code style/quality reviews, and versioning.  Run ``make help`` to see a summary of recipes:
 
 .. code-block:: shell
 
