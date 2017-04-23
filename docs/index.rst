@@ -14,7 +14,7 @@ Fusion Data Platform
     * Google group: https://groups.google.com/forum/#!forum/fusion-data-platform
 
 
-**Contents**
+	**Contents**
 
 .. toctree::
     :maxdepth: 1
