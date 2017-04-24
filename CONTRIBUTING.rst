@@ -11,11 +11,11 @@ How to contribute
 * https://guides.github.com/activities/forking/
 * https://help.github.com/articles/fork-a-repo/
 
-**Style**: Try to follow the `PEP8 style guide <https://www.python.org/dev/peps/pep-0008/>`_.  FDP uses ``flake8`` for PEP8 conformance and static code analysis.  To scan for PEP8 conformance, run ``make lint`` in the top-level directory.
+**Style**: Try to follow the `PEP8 style guide <https://www.python.org/dev/peps/pep-0008/>`_.  FDP uses ``flake8`` to scan for PEP8 conformance and static code analysis.  To perform the scans, run ``make lint`` in the top-level directory.
 
-**Testing**: FDP uses ``pytest`` for testing and ``coverage`` for test coverage.  You can run the test suite with ``make test`` or ``pytest`` in the top-level directory, and you can run the test coverage scan with ``make coverage`` in the top-lelvel directory.  To read more about testing in FDP, see ``test/README.rst``.
+**Testing**: FDP uses ``pytest`` for testing and ``coverage`` for test coverage.  You can run the test suite with ``make test`` or ``pytest`` in the top-level directory, and you can run the test coverage scan with ``make coverage`` in the top-lelvel directory.  See ``test/README.rst`` for more information about testing in FDP.
 
-**Makefile utilities**: The top-level ``Makefile`` contains several utilities for generating docs, code style/quality reviews, and versioning.  Run ``make help`` to see a summary of recipes:
+**Makefile recipes**: The top-level ``Makefile`` contains several recipes for generating docs, code style/quality reviews, and versioning.  Run ``make help`` to see a summary of recipes:
 
 .. code-block:: shell
 
