@@ -93,6 +93,10 @@ class Machine(MutableMapping):
                          for shot in iter(self._shots.keys())])
         return shotlist
 
+    def _get_logbook_credentials(self):
+        # override with methods/<machine>/_get_logbook_credentials.py
+        pass
+
     def _get_connection(self, shot, tree):
         for connection in self._connections:
             if connection.tree == (tree, shot):
