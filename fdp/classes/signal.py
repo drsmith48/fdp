@@ -114,7 +114,7 @@ class Signal(np.ndarray):
                         if VERBOSE:
                             print('        {}.__array_finalize__: slicing axis {} with {}'.
                                   format(self._name, axis, slic_axis))
-                        if isinstance(slic_axis[0], (int, long, float, np.generic)):
+                        if isinstance(slic_axis[0], (int, int, float, np.generic)):
                             if VERBOSE:
                                 print('        {}.__array_finalize__: single-point slice'.
                                       format(self._name))
@@ -219,7 +219,7 @@ class Signal(np.ndarray):
                         print('        {}.__getitem__.parseindex(): ndim >= 2'.
                               format(self._name))
                     newindex = [index]
-            elif isinstance(index, (int, long, float, np.generic)):
+            elif isinstance(index, (int, int, float, np.generic)):
                 if VERBOSE:
                     print('        {}.__getitem__.parseindex(): index is int|long|float|generic'.
                           format(self._name))
@@ -228,7 +228,7 @@ class Signal(np.ndarray):
                 if VERBOSE:
                     print('        {}.__getitem__.parseindex(): index is tuple'.
                           format(self._name))
-                newindex = [int(i) if isinstance(i, (int, long, float, np.generic))
+                newindex = [int(i) if isinstance(i, (int, int, float, np.generic))
                             else i for i in index]
             # check for ellipses in newindex
             ellipsisbool = [Ellipsis is i for i in newindex]
@@ -325,7 +325,7 @@ class Signal(np.ndarray):
         except TypeError:
             print('No axes present for signal {}.'.format(self._name))
             return None
-        for kwarg, values in kwargs.items():
+        for kwarg, values in list(kwargs.items()):
             if kwarg not in self.axes:
                 print('      {} is not a valid axis.'.format(kwarg))
                 raise TypeError
@@ -341,7 +341,7 @@ class Signal(np.ndarray):
                 slc[axis] = axis_ind
         return self[tuple(slc)]
 
-    def __nonzero__(self):
+    def __bool__(self):
         return bool(self.size)
 
     def sigwrapper(f):

@@ -73,7 +73,7 @@ def test_filter_xp(setup_nstx):
     xp1037.logbook()
     xp1037.list_shots()
     dir(xp1037)
-    keys = xp1037._shots.keys()
+    keys = list(xp1037._shots.keys())
     assert keys[0] in xp1037
 
 

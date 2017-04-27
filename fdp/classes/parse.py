@@ -5,6 +5,8 @@ Created on Thu Jun 18 10:38:40 2015
 """
 from __future__ import print_function
 
+from builtins import str
+from builtins import range
 import os
 import numpy as np
 from .globals import FDP_DIR, VERBOSE
@@ -42,7 +44,7 @@ def parse_method(obj, level=None):
 
 
 def parse_defaults(element):
-    keys = element.keys()
+    keys = list(element.keys())
     method_defaults = '_{}_defaults'.format(element.get('method'))
     keys.remove('method')
     defaults_dict = {key: element.get(key) for key in keys}
@@ -124,7 +126,7 @@ def parse_signal(obj, element):
         else:
             digits = int(np.ceil(np.log10(end - 1)))
         for i, index in enumerate(range(start, end)):
-            nrange = range(namestart, nameend)
+            nrange = list(range(namestart, nameend))
             name = element.get('name').format(str(nrange[i]).zfill(digits))
             title = None
             if element.get('title'):

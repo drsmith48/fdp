@@ -6,6 +6,8 @@ Created on Fri Jul 15 16:39:37 2016
 """
 
 from __future__ import division
+from builtins import range
+from builtins import object
 from scipy.signal import firwin, filtfilt, fftconvolve, hilbert
 from scipy.signal.spectral import _spectral_helper
 from scipy.stats import linregress
@@ -530,14 +532,14 @@ class CrossSignal(object):
             index = np.searchsorted(self.times, t)
 
             # Delete bins before and after the sawtooth crash
-            self.csd = np.delete(self.csd, range(index - self.sawteethbins,
-                                 index + self.sawteethbins + 1), axis=-1)
-            self.asd1 = np.delete(self.asd1, range(index - self.sawteethbins,
-                                  index + self.sawteethbins + 1), axis=-1)
-            self.asd2 = np.delete(self.asd2, range(index - self.sawteethbins,
-                                  index + self.sawteethbins + 1), axis=-1)
-            self.times = np.delete(self.times, range(index - self.sawteethbins,
-                                   index + self.sawteethbins + 1), axis=-1)
+            self.csd = np.delete(self.csd, list(range(index - self.sawteethbins,
+                                 index + self.sawteethbins + 1)), axis=-1)
+            self.asd1 = np.delete(self.asd1, list(range(index - self.sawteethbins,
+                                  index + self.sawteethbins + 1)), axis=-1)
+            self.asd2 = np.delete(self.asd2, list(range(index - self.sawteethbins,
+                                  index + self.sawteethbins + 1)), axis=-1)
+            self.times = np.delete(self.times, list(range(index - self.sawteethbins,
+                                   index + self.sawteethbins + 1)), axis=-1)
 
     def phase_slope(self, fstart, fend):
         """

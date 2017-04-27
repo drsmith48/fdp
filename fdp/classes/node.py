@@ -4,6 +4,8 @@ Created on Wed Nov 25 19:27:21 2015
 
 @author: ktritz
 """
+from builtins import str
+from builtins import object
 import inspect
 import types
 from .parse import parse_mdspath

@@ -5,6 +5,8 @@ Created on Wed Nov 25 12:14:03 2015
 @author: ktritz
 """
 from __future__ import print_function
+from builtins import str
+from builtins import range
 import inspect
 import types
 import numpy as np
@@ -67,7 +69,7 @@ class Shot(MutableMapping):
         return value in self._modules
 
     def __len__(self):
-        return len(self._modules.keys())
+        return len(list(self._modules.keys()))
 
     def __delitem__(self, item):
         pass
@@ -81,7 +83,7 @@ class Shot(MutableMapping):
         pass
 
     def __dir__(self):
-        return self._modules.keys()
+        return list(self._modules.keys())
 
     def _get_xp(self):
         # query logbook for XP, return XP (list if needed)

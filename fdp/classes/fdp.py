@@ -6,6 +6,7 @@ Created on Wed Nov 25 19:35:36 2015
 """
 from __future__ import print_function
 
+from builtins import object
 from .machine import Machine
 from .parse import parse_method
 from .globals import VERBOSE, FdpError

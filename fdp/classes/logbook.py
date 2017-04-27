@@ -4,6 +4,7 @@ Created on Wed Nov 25 12:19:00 2015
 
 @author: ktritz
 """
+from builtins import object
 import datetime
 import numpy as np
 import pymssql

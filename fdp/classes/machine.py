@@ -5,6 +5,9 @@ Created on Wed Nov 25 12:05:14 2015
 @author: ktritz
 """
 from __future__ import print_function
+from builtins import str
+from builtins import map
+from builtins import range
 from collections import Mapping, MutableMapping, deque
 import os
 import numpy as np
@@ -69,13 +72,13 @@ class Machine(MutableMapping):
         return '<machine {}>'.format(self._name.upper())
 
     def __iter__(self):
-        return iter(self._shots.values())
+        return iter(list(self._shots.values()))
 
     def __contains__(self, value):
         return value in self._shots
 
     def __len__(self):
-        return len(self._shots.keys())
+        return len(list(self._shots.keys()))
 
     def __delitem__(self, item):
         self._shots.__delitem__(item)
@@ -91,7 +94,7 @@ class Machine(MutableMapping):
     def __dir__(self):
         shotlist = ['s0']
         shotlist.extend(['s{}'.format(shot)
-                         for shot in iter(self._shots.keys())])
+                         for shot in iter(list(self._shots.keys()))])
         return shotlist
 
     def _get_logbook_credentials(self):
@@ -234,15 +237,15 @@ class Machine(MutableMapping):
                 try:
                     container = container_queue.popleft()
                     container._get_dynamic_containers()
-                    container_queue.extend(container._containers.values())
+                    container_queue.extend(list(container._containers.values()))
                     if obj is None or obj.lower() == 'signal':
-                        for signal in container._signals.values():
+                        for signal in list(container._signals.values()):
                             if signal._contains(tag):
                                 branch_str = '.'.join([signal._get_branch(),
                                                        signal._name])
                                 find_list.add(branch_str)
                     if obj is None or obj.lower() == 'axis':
-                        for signal in container._signals.values():
+                        for signal in list(container._signals.values()):
                             for axis_str in signal.axes:
                                 axis = getattr(signal, axis_str)
                                 if axis._contains(tag):
@@ -305,13 +308,13 @@ class ImmutableMachine(Mapping):
         return '<immutable machine {}>'.format(self._name.upper())
 
     def __iter__(self):
-        return iter(self._shots.values())
+        return iter(list(self._shots.values()))
 
     def __contains__(self, value):
         return value in self._shots
 
     def __len__(self):
-        return len(self._shots.keys())
+        return len(list(self._shots.keys()))
 
     def __delitem__(self, item):
         pass

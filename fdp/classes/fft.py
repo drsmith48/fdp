@@ -4,7 +4,11 @@ Created on Fri Apr 15 21:00:08 2016
 
 @author: drsmith
 """
+from __future__ import division
 
+from builtins import range
+from builtins import object
+from past.utils import old_div
 import numpy as np
 from scipy import fftpack
 from .globals import FdpError
@@ -46,8 +50,8 @@ class Fft(object):
 
         if tmax > 10:
             # assume ms input and convert to s
-            tmin = tmin / 1e3
-            tmax = tmax / 1e3
+            tmin = old_div(tmin, 1e3)
+            tmax = old_div(tmax, 1e3)
         self.tmin = tmin
         self.tmax = tmax
 
@@ -117,7 +121,7 @@ class Fft(object):
             self.time.append(t)
             self.fft.append(self.signal[istart:istart + self.power2])
             # candidate istart and t for next iteration
-            istart = istart + self.power2 / self.overlapfactor
+            istart = istart + old_div(self.power2, self.overlapfactor)
             t = np.mean(self.signal.time[istart:istart + self.power2])
         # convert lists to ndarrays
         # at this point, fft contains modified input signals
@@ -149,17 +153,17 @@ class Fft(object):
                                n=self.power2,
                                axis=1)
         # frequency array in kHz
-        self.freq = fftpack.fftfreq(self.power2, d=timeint) / 1e3
+        self.freq = old_div(fftpack.fftfreq(self.power2, d=timeint), 1e3)
         # check integrated power (bin-wise)
         self.checkIntegratedPower()
         # if real-valued input, convert to single-sided FFT
         if not self.iscomplexsignal:
             # complex-valued, single-sided FFT
-            ssfft = self.fft[:, 0:self.power2 / 2 + 1].copy()
-            ssfft[:, 1:self.power2 / 2] *= np.sqrt(2.0)
+            ssfft = self.fft[:, 0:old_div(self.power2, 2) + 1].copy()
+            ssfft[:, 1:old_div(self.power2, 2)] *= np.sqrt(2.0)
             self.fft = ssfft
-            self.freq = self.freq[0:self.power2 / 2 + 1].copy()
-            self.freq[self.power2 / 2] = -self.freq[self.power2 / 2]
+            self.freq = self.freq[0:old_div(self.power2, 2) + 1].copy()
+            self.freq[old_div(self.power2, 2)] = -self.freq[old_div(self.power2, 2)]
             # check integrated power (bin-wise)
             self.checkIntegratedPower()
 
@@ -176,8 +180,8 @@ class Fft(object):
         self.binavg_logpsd = 10 * np.log10(self.binavg_psd)
 
     def checkIntegratedPower(self):
-        intpowercheck = np.sum(np.square(np.absolute(self.fft)),
-                               axis=1) / self.power2
+        intpowercheck = old_div(np.sum(np.square(np.absolute(self.fft)),
+                               axis=1), self.power2)
         if not np.allclose(self.intpower, intpowercheck):
             raise FdpError('Integrated power mismatch')
 

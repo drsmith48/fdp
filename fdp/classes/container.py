@@ -5,6 +5,9 @@ Created on Wed Nov 25 13:58:50 2015
 @author: ktritz
 """
 from __future__ import print_function
+from builtins import str
+from builtins import zip
+from builtins import object
 import os
 import inspect
 import types
@@ -236,17 +239,17 @@ class Container(object):
         items = list(self.__dict__.keys())
         items.extend(list(self.__class__.__dict__.keys()))
         if Signal not in self.__class__.mro():
-            items.extend(self._dynamic_containers.keys())
+            items.extend(list(self._dynamic_containers.keys()))
         return [item for item in set(items).difference(self._base_items)
                 if item[0] is not '_']
 
     def __iter__(self):
         if not len(self._signals):
-            items = sorted(self._containers.values(),
+            items = sorted(list(self._containers.values()),
                            key=lambda obj: obj._name.lower())
             # items.extend(self._dynamic_containers.values())
         else:
-            items = sorted(self._signals.values(),
+            items = sorted(list(self._signals.values()),
                            key=lambda obj: obj._name.lower())
         return iter(items)
 

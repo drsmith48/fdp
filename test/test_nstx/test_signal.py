@@ -11,7 +11,6 @@ def test_1d_signals(setup_shot):
                shot.rwm.irwm1]
     for signal in signals:
         signal[:]
-        assert signal
         assert hasattr(signal, 'size')
         assert signal.size > 0
         assert hasattr(signal, 'time')

@@ -50,6 +50,6 @@ def machineAlias(machine):
     # invalid machine name
     txt = '"{}" is not a valid machine name\n'.format(machine)
     txt = txt + 'Valid machines are:\n'
-    for values in aliases.itervalues():
+    for values in aliases.values():
         txt = txt + '  {}\n'.format(values)
     raise FdpError(txt)

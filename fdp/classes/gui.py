@@ -5,11 +5,13 @@ Created on Sat Jul 16 11:10:48 2016
 @author: drsmith
 """
 
+from future import standard_library
+standard_library.install_aliases()
 import sys
 from warnings import warn
 if sys.version_info[0] < 3:
-    import Tkinter as tk
-    import ttk
+    import tkinter as tk
+    import tkinter.ttk
 else:
     import tkinter as tk
     import tkinter.ttk as ttk
@@ -50,20 +52,20 @@ class BaseGui(threading.Thread):
         else:
             self.topwindow = tk.Toplevel()
         self.topwindow.title(self.title)
-        self.controlframe = ttk.Frame(master=self.topwindow,
+        self.controlframe = tkinter.ttk.Frame(master=self.topwindow,
                                       borderwidth=3,
                                       relief='ridge',
                                       padding=2)
         self.controlframe.pack(side='left', fill='y')
         # dummy frame to set controlframe width
-        controlwidth = ttk.Frame(master=self.controlframe, width=125)
+        controlwidth = tkinter.ttk.Frame(master=self.controlframe, width=125)
         controlwidth.pack(side='top', fill='x')
 
         if self.defaultwidgets:
             self.addDefaultWidgets()
 
         self.figure = mpl.figure.Figure()
-        self.figureframe = ttk.Frame(master=self.topwindow,
+        self.figureframe = tkinter.ttk.Frame(master=self.topwindow,
                                      borderwidth=3,
                                      relief='ridge')
         self.figureframe.pack(side='left', expand=1, fill='both')
@@ -118,29 +120,29 @@ class BaseGui(threading.Thread):
         self.canvas.show()
 
     def insertButtonEntry(self, text=None, width=8, command=None):
-        frame = ttk.Frame(master=self.controlframe, padding=2)
+        frame = tkinter.ttk.Frame(master=self.controlframe, padding=2)
         frame.pack(side='top', fill='x')
-        button = ttk.Button(master=frame,
+        button = tkinter.ttk.Button(master=frame,
                             text=text,
                             command=command)
         button.pack(side='left')
-        entry = ttk.Entry(master=frame, width=width)
+        entry = tkinter.ttk.Entry(master=frame, width=width)
         entry.pack(side='right')
         return entry
 
     def insertTextEntry(self, text=None, width=8):
-        frame = ttk.Frame(master=self.controlframe, padding=2)
+        frame = tkinter.ttk.Frame(master=self.controlframe, padding=2)
         frame.pack(side='top', fill='x')
-        label = ttk.Label(master=frame, text=text)
+        label = tkinter.ttk.Label(master=frame, text=text)
         label.pack(side='left')
-        entry = ttk.Entry(master=frame, width=width)
+        entry = tkinter.ttk.Entry(master=frame, width=width)
         entry.pack(side='right')
         return entry
 
     def insertShotListbox(self):
-        frame = ttk.Frame(master=self.controlframe, padding=2)
+        frame = tkinter.ttk.Frame(master=self.controlframe, padding=2)
         frame.pack(side='top', fill='x')
-        label = ttk.Label(master=frame, text='Shots:')
+        label = tkinter.ttk.Label(master=frame, text='Shots:')
         label.pack(side='left', anchor=tk.N)
         self.shotControlVar = tk.StringVar()
         self.shotList = tk.Listbox(master=frame,
@@ -152,9 +154,9 @@ class BaseGui(threading.Thread):
         self.shotList.pack(side='right', anchor=tk.N)
 
     def insertButton(self, text=None, width=20, command=None):
-        frame = ttk.Frame(master=self.controlframe, padding=2)
+        frame = tkinter.ttk.Frame(master=self.controlframe, padding=2)
         frame.pack(side='bottom', fill='x')
-        button = ttk.Button(master=frame, text=text,
+        button = tkinter.ttk.Button(master=frame, text=text,
                             command=command,
                             width=width)
         button.pack(side='left')
