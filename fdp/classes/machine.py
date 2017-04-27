@@ -4,6 +4,7 @@ Created on Wed Nov 25 12:05:14 2015
 
 @author: ktritz
 """
+from __future__ import print_function
 from collections import Mapping, MutableMapping, deque
 import os
 import numpy as np

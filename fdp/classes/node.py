@@ -37,6 +37,6 @@ class Node(object):
                                  type(self), attribute))
         attr = getattr(self._parent, attribute)
         if inspect.ismethod(attr):
-            return types.MethodType(attr.im_func, self)
+            return types.MethodType(attr.__func__, self)
         else:
             return attr

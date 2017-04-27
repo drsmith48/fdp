@@ -4,6 +4,7 @@ Created on Wed Nov 25 12:14:03 2015
 
 @author: ktritz
 """
+from __future__ import print_function
 import inspect
 import types
 import numpy as np

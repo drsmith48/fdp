@@ -10,6 +10,7 @@ Created on Tue Jun 23 2015
 
 @author: hyuh
 """
+from __future__ import print_function
 import sys
 if sys.version_info > (3,):
     long = int

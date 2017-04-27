@@ -15,3 +15,4 @@ nstx.addshot(shotlist)
 for shot in nstx:
     print('*** {} logbook ***'.format(shot.shot))
     shot.logbook()
+    break

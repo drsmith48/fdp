@@ -4,6 +4,7 @@ Created on Wed Nov 25 13:58:50 2015
 
 @author: ktritz
 """
+from __future__ import print_function
 import os
 import inspect
 import types
