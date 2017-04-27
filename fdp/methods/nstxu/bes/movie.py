@@ -4,6 +4,7 @@ Created on Wed Oct  5 18:27:32 2016
 
 @author: dkriete
 """
+from __future__ import print_function
 
 import gc
 

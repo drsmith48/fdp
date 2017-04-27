@@ -56,6 +56,9 @@ class Shot(MutableMapping):
     def __repr__(self):
         return '<Shot {}>'.format(self.shot)
 
+    def __str__(self):
+        return 'Shot {}'.format(self.shot)
+
     def __iter__(self):
         # return iter(self._modules.values())
         return iter(self._modules)

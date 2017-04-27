@@ -4,6 +4,7 @@ Created on Tue May 10 20:54:54 2016
 
 @author: drsmith
 """
+from __future__ import print_function
 
 import os.path
 import xml.etree.ElementTree as ET

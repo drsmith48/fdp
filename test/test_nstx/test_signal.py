@@ -1,3 +1,4 @@
+from __future__ import print_function
 def test_1d_signals(setup_shot):
     shot = setup_shot
     signals = [shot.bes.ch01,

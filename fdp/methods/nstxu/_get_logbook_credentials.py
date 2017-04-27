@@ -9,7 +9,6 @@ from ...classes.datasources import LOGBOOK_CREDENTIALS
 
 def _get_logbook_credentials(self):
     credentials = LOGBOOK_CREDENTIALS[self._name]
-    print(credentials['loginfile'])
     with open(credentials['loginfile'], 'r') as f:
         f.readline() # 1st line is empty
         credentials['instance'] = f.readline().rstrip() # DB instance on 2nd line
