@@ -61,7 +61,7 @@ docs: docs-pdf docs-html ## build HTML and PDF documents
 .PHONY: docs-html
 docs-html: ## build HTML documents
 	$(MAKE) -C docs/ html
-	@$(BROWSER) docs/build/html/index.html
+	#@$(BROWSER) docs/build/html/index.html
 
 
 .PHONY: docs-pdf
