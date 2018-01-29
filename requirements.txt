@@ -5,3 +5,10 @@ numba
 matplotlib
 pymssql
 MDSplus
+bumpversion
+coverage
+flake8
+autopep8
+sphinx
+pytest
+tox
