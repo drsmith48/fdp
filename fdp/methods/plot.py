@@ -20,7 +20,7 @@ import numba as nb
 import matplotlib.pyplot as plt
 #import pyqtgraph as pg
 
-from ..classes.globals import FdpWarning
+from ..globals import FdpWarning
 
 # pg.mkQApp()
 

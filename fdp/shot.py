@@ -5,13 +5,13 @@ Created on Wed Nov 25 12:14:03 2015
 @author: ktritz
 """
 from __future__ import print_function
-from builtins import str
-from builtins import range
+from builtins import str, range
 import inspect
 import types
 import numpy as np
 from collections import MutableMapping
-from . import container
+
+from .container import Factory
 from .globals import VERBOSE
 
 
@@ -39,10 +39,10 @@ class Shot(MutableMapping):
                 if VERBOSE:
                     print('  s{}.__getattr__({}) calling Factory()'.
                           format(self.shot, attribute))
-                self._modules[attribute] = container.Factory(attribute,
-                                                             root=self._root,
-                                                             shot=self.shot,
-                                                             parent=self)
+                self._modules[attribute] = Factory(attribute,
+                                                   root=self._root,
+                                                   shot=self.shot,
+                                                   parent=self)
             return self._modules[attribute]
         try:
             attr = getattr(self._parent, attribute)

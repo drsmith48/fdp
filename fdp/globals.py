@@ -6,12 +6,16 @@ Created on Thu Jun 18 11:18:16 2015
 
 @author: ktritz
 """
-import os
+import os.path
+import warnings
 
 VERBOSE = False
 TKROOT = None
-FDP_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+FDP_DIR = os.path.dirname(os.path.abspath(__file__))
 
+
+def simplefilter(*args):
+    warnings.simplefilter(*args)
 
 class FdpError(Exception):
     """
@@ -42,6 +46,7 @@ class FdpWarning(Warning):
 
     def __init__(self, message=''):
         self.message = message
+        UserWarning
 
     def __str__(self):
         return self.message

@@ -8,6 +8,7 @@ from builtins import object
 import datetime
 import numpy as np
 import pymssql
+
 from .globals import FdpError
 
 

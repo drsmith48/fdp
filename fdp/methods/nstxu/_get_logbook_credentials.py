@@ -5,7 +5,7 @@ Created on Wed Apr 26 14:19:06 2017
 
 @author: drsmith
 """
-from ...classes.datasources import LOGBOOK_CREDENTIALS
+from ...datasources import LOGBOOK_CREDENTIALS
 
 def _get_logbook_credentials(self):
     credentials = LOGBOOK_CREDENTIALS[self._name]

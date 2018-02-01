@@ -9,6 +9,7 @@ from builtins import str
 from builtins import range
 import os
 import numpy as np
+
 from .globals import FDP_DIR, VERBOSE
 
 
@@ -36,7 +37,7 @@ def parse_method(obj, level=None):
         module_chain = '.'.join(['methods', machine, branch])
     if os.path.exists(os.path.join(method_path, module)):
         method_object = __import__(
-            module_chain, globals(), locals(), ['__file__'], 2)
+            module_chain, globals(), locals(), ['__file__'], 1)
         if getattr(method_object, '__all__', None):
             for method in method_object.__all__:
                 method_from_object = getattr(method_object, method)

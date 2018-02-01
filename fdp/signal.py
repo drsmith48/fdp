@@ -18,6 +18,7 @@ if sys.version_info > (3,):
 import inspect
 import types
 import numpy as np
+
 from .globals import FdpError, VERBOSE
 
 
@@ -98,16 +99,16 @@ class Signal(np.ndarray):
 
         if objaxes:
             for axis in objaxes:
-                if objslic:
+                if objslic is not None:
                     # slice axis according to _slic
                     obj_axis = getattr(obj, axis)
-                    if type(objslic) is slice or type(objslic) is list:
+                    if isinstance(objslic, (slice,list,np.ndarray)):
                         # logic for 1D arrays
                         if VERBOSE:
                             print('        {}.__array_finalize__: slicing axis {} with obj._slic'.
                                   format(self._name, axis))
                         setattr(self, axis, obj_axis[objslic])
-                    elif type(objslic) is tuple:
+                    elif isinstance(objslic, tuple):
                         # logic for multi-dim arrays
                         slic_axis = tuple([objslic[objaxes.index(axisaxis)] for
                                            axisaxis in (obj_axis.axes + [axis])])
@@ -342,6 +343,8 @@ class Signal(np.ndarray):
         return self[tuple(slc)]
 
     def __bool__(self):
+        if self._empty is True:
+            self._get_mdsdata()
         return bool(self.size)
 
     def sigwrapper(f):

@@ -5,17 +5,16 @@ Created on Wed Nov 25 12:05:14 2015
 @author: ktritz
 """
 from __future__ import print_function
-from builtins import str
-from builtins import map
-from builtins import range
+from builtins import str, map, range
 from collections import Mapping, MutableMapping, deque
 import os
 import numpy as np
 from warnings import warn
 import MDSplus as mds
+
 from .logbook import Logbook
 from .shot import Shot
-from .globals import FDP_DIR, FdpError, FdpWarning, VERBOSE
+from .globals import FDP_DIR, FdpError, FdpWarning
 from .datasources import machineAlias, MDS_SERVERS, EVENT_SERVERS
 
 
@@ -39,7 +38,7 @@ class Machine(MutableMapping):
     _parent = None
     _modules = None
 
-    def __init__(self, name='nstxu', shotlist=None, xp=None, date=None):
+    def __init__(self, name='nstx', shotlist=None, xp=None, date=None):
         self._shots = {}  # shot dictionary with shot number (int) keys
         self._classlist = {}
         self._name = machineAlias(name)
@@ -83,10 +82,12 @@ class Machine(MutableMapping):
     def __delitem__(self, item):
         self._shots.__delitem__(item)
 
-    def __getitem__(self, item):
-        if item == 0:
+    def __getitem__(self, shot):
+        if shot == 0:
             return self.s0
-        return self._shots[item]
+        if shot not in self._shots:
+            self._shots[shot] = Shot(shot, root=self, parent=self)
+        return self._shots[shot]
 
     def __setitem__(self, item, value):
         pass
