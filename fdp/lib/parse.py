@@ -37,7 +37,7 @@ def parse_method(obj, level=None):
         module_chain = '.'.join(['methods', machine, branch])
     if os.path.exists(os.path.join(method_path, module)):
         method_object = __import__(
-            module_chain, globals(), locals(), ['__file__'], 1)
+            module_chain, globals(), locals(), ['__file__'], 2)
         if getattr(method_object, '__all__', None):
             for method in method_object.__all__:
                 method_from_object = getattr(method_object, method)

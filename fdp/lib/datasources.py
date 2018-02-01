@@ -10,8 +10,6 @@ import os
 from .globals import FdpError
 
 
-MACHINES = ['nstxu', 'diiid', 'cmod']
-
 MDS_SERVERS = {
     'nstxu': {'hostname': 'skylark.pppl.gov',
               'port': '8501'}
@@ -38,18 +36,12 @@ LOGBOOK_CREDENTIALS = {
 }
 
 
-def machineAlias(machine):
-
+def machineAlias(machine=''):
     aliases = {'nstxu': ['nstx', 'nstxu', 'nstx-u'],
                'diiid': ['diiid', 'diii-d', 'd3d'],
                'cmod': ['cmod', 'c-mod']}
-
-    for key in iter(aliases):
-        if machine.lower() in aliases[key]:
+    for key,value in aliases.iteritems():
+        if machine.lower() in value:
             return key
     # invalid machine name
-    txt = '"{}" is not a valid machine name\n'.format(machine)
-    txt = txt + 'Valid machines are:\n'
-    for values in aliases.values():
-        txt = txt + '  {}\n'.format(values)
-    raise FdpError(txt)
+    raise FdpError('"{}" is not a valid machine name\n'.format(machine))

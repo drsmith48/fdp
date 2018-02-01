@@ -14,8 +14,8 @@ import types
 import numpy as np
 import xml.etree.ElementTree as ET
 
-from .globals import FDP_DIR, VERBOSE
 from . import parse
+from .globals import FDP_DIR, VERBOSE
 from .node import Node
 from .signal import Signal
 
@@ -227,7 +227,7 @@ class Container(object):
     @classmethod
     def _get_path(cls):
         branch = cls._get_branch().split('.')
-        path = os.path.join(FDP_DIR, 'modules', cls._root._name)
+        path = os.path.join(FDP_DIR, 'diagnostics', cls._root._name)
         for step in branch:
             newpath = os.path.join(path, step)
             if not os.path.isdir(newpath):
@@ -310,7 +310,7 @@ def Factory(module_branch, root=None, shot=None, parent=None):
     module = module_list[-1]
     branch_str = ''.join([word.capitalize() for word in module_list])
     if module_branch not in _tree_dict:
-        module_path = os.path.join(FDP_DIR, 'modules', root._name,
+        module_path = os.path.join(FDP_DIR, 'diagnostics', root._name,
                                    *module_list)
         parse_tree = ET.parse(os.path.join(module_path,
                                            ''.join([module, '.xml'])))

@@ -6,12 +6,12 @@ Created on Thu Jun 18 11:18:16 2015
 
 @author: ktritz
 """
-import os.path
+from os.path import dirname, abspath
 import warnings
 
 VERBOSE = False
 TKROOT = None
-FDP_DIR = os.path.dirname(os.path.abspath(__file__))
+FDP_DIR = dirname(dirname(abspath(__file__)))
 
 
 def simplefilter(*args):

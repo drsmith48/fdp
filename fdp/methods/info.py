@@ -6,7 +6,7 @@ Created on Thu Jul  7 19:10:56 2016
 """
 from __future__ import print_function
 
-from .. import utilities
+from ..lib import utilities
 
 
 def isSignal(obj):

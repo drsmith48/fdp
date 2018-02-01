@@ -7,21 +7,16 @@ Created on Sat Jul 16 11:10:48 2016
 
 from future import standard_library
 standard_library.install_aliases()
-import sys
 from warnings import warn
-if sys.version_info[0] < 3:
-    import tkinter as tk
-    import tkinter.ttk
-else:
-    import tkinter as tk
-    import tkinter.ttk as ttk
+import tkinter as tk
+import tkinter.ttk
 import threading
 
 import matplotlib as mpl
 # mpl.use('TkAgg')
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
-from .globals import TKROOT, FdpWarning
+from ..lib.globals import TKROOT, FdpWarning
 
 
 class BaseGui(threading.Thread):

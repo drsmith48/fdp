@@ -8,14 +8,15 @@ from __future__ import print_function
 from builtins import str, map, range
 from collections import Mapping, MutableMapping, deque
 import os
-import numpy as np
 from warnings import warn
+import numpy as np
 import MDSplus as mds
 
 from .logbook import Logbook
 from .shot import Shot
 from .globals import FDP_DIR, FdpError, FdpWarning
 from .datasources import machineAlias, MDS_SERVERS, EVENT_SERVERS
+from .parse import parse_method
 
 
 class Machine(MutableMapping):
@@ -149,7 +150,7 @@ class Machine(MutableMapping):
 
     def _get_modules(self):
         if self._modules is None:
-            module_dir = os.path.join(FDP_DIR, 'modules', self._name)
+            module_dir = os.path.join(FDP_DIR, 'diagnostics', self._name)
             self._modules = [module for module in os.listdir(module_dir)
                              if os.path.isdir(os.path.join(module_dir, module)) and
                              module[0] is not '_']
@@ -269,6 +270,18 @@ class Machine(MutableMapping):
         """
         self.addshot(xp=xp, date=date)
         return ImmutableMachine(xp=xp, date=date, parent=self)
+
+
+def createMachine(name='nstxu'):
+    machine_name = machineAlias(name)
+    class_name = 'Machine' + machine_name.capitalize()
+    cls = type(class_name, (Machine, ), {})
+    cls._name = machine_name
+    parse_method(cls, level='top')
+    parse_method(cls, level=cls._name)
+    return cls
+
+Nstxu = createMachine('nstxu')
 
 
 class ImmutableMachine(Mapping):
