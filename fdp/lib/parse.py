@@ -10,7 +10,7 @@ from builtins import range
 import os
 import numpy as np
 
-from .globals import FDP_DIR, VERBOSE
+from .globals import FDP_DIR
 
 
 def parse_method(obj, level=None):
@@ -53,7 +53,7 @@ def parse_defaults(element):
 
 
 def fill_signal_dict(name=None, units=None, axes=None,
-                     mdspath=None, mdstree=None,
+                     mdspath=None, mdstree=None, mdsshape=None,
                      dim_of=None, error=None, parent=None,
                      transpose=None, title=None, desc=None):
     """
@@ -63,6 +63,8 @@ def fill_signal_dict(name=None, units=None, axes=None,
     return {'_name': name,
             'units': units,
             'axes': axes,
+            'point_axes': [],
+            'mdsshape':None,
             '_mdsnode': mdspath,
             '_mdstree': mdstree,
             '_dim_of': dim_of,
@@ -71,16 +73,10 @@ def fill_signal_dict(name=None, units=None, axes=None,
             '_transpose': transpose,
             '_title': title,
             '_desc': desc,
-            '_empty': True,
-            'point_axes': []}
+            '_empty': True}
 
 
 def parse_signal(obj, element):
-    def debug(msg=''):
-        if VERBOSE:
-            print('parse_signal(): {}'.format(msg))
-    debug('begin with obj {} and element {}'.
-          format(obj._name, element.get('name')))
     units = parse_units(obj, element)
     axes, transpose = parse_axes(obj, element)
     number_range = element.get('range')
@@ -150,7 +146,6 @@ def parse_signal(obj, element):
                                                 transpose=transpose,
                                                 title=title,
                                                 desc=desc))
-    debug('end')
     return signal_dict
 
 

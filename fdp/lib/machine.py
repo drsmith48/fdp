@@ -16,7 +16,6 @@ from .logbook import Logbook
 from .shot import Shot
 from .globals import FDP_DIR, FdpError, FdpWarning
 from .datasources import machineAlias, MDS_SERVERS, EVENT_SERVERS
-from .parse import parse_method
 
 
 class Machine(MutableMapping):
@@ -38,11 +37,12 @@ class Machine(MutableMapping):
     _connections = []
     _parent = None
     _modules = None
+    _name = ''
 
-    def __init__(self, name='nstx', shotlist=None, xp=None, date=None):
+    def __init__(self, shotlist=None, xp=None, date=None):
         self._shots = {}  # shot dictionary with shot number (int) keys
         self._classlist = {}
-        self._name = machineAlias(name)
+#        self._name = machineAlias(name)
         self._logbook = Logbook(name=self._name, root=self)
         event_server = EVENT_SERVERS[self._name]
         self._eventConnection = mds.Connection('{}:{}'.format(event_server['hostname'],
@@ -59,6 +59,13 @@ class Machine(MutableMapping):
             self.addshot(shotlist=shotlist, xp=xp, date=date)
 
     def __getattr__(self, name):
+        """
+        machine object attribute is string with "s" prepended
+        on shot number; enables tab completion functionality
+
+        >>> shot = nstx.s141000
+        >>> dir(nstx)
+        """
         try:
             shot = int(name.split('s')[1])
         except:
@@ -84,6 +91,13 @@ class Machine(MutableMapping):
         self._shots.__delitem__(item)
 
     def __getitem__(self, shot):
+        """
+        machine object dictionary key is shot number integer
+
+        >>> shot = nstx[141000]
+        >>> for shot in nstx:
+        ...     print(shot)
+        """
         if shot == 0:
             return self.s0
         if shot not in self._shots:
@@ -123,11 +137,29 @@ class Machine(MutableMapping):
             self._connections.insert(0, connection)
         return connection
 
+    def _get_mdsshape(self, signal):
+        if signal.shot is 0:
+            print('No MDS data exists for model tree')
+            return tuple()
+        try:
+            connection = self._get_connection(signal.shot, signal._mdstree)
+            usage_code = connection.get('getnci({},"USAGE")'.format(signal._mdsnode)).data()
+            length = connection.get('getnci({},"LENGTH")'.format(signal._mdsnode)).data()
+            if usage_code != 6 or length < 1:
+                return tuple()
+        except:
+            msg = 'MDSplus connection error for shot {}, tree {}, and node {}'.format(
+                signal.shot, signal._mdstree, signal._mdsnode)
+            warn(msg, FdpWarning)
+            return tuple()
+        data = connection.get('shape({})'.format(signal._mdsnode)).data()
+        return tuple(data)
+
     def _get_mdsdata(self, signal):
         shot = signal.shot
         if shot is 0:
             print('No MDS data exists for model tree')
-            return None
+            return np.zeros(0)
         connection = self._get_connection(shot, signal._mdstree)
         try:
             data = connection.get(signal._mdsnode)
@@ -270,18 +302,6 @@ class Machine(MutableMapping):
         """
         self.addshot(xp=xp, date=date)
         return ImmutableMachine(xp=xp, date=date, parent=self)
-
-
-def createMachine(name='nstxu'):
-    machine_name = machineAlias(name)
-    class_name = 'Machine' + machine_name.capitalize()
-    cls = type(class_name, (Machine, ), {})
-    cls._name = machine_name
-    parse_method(cls, level='top')
-    parse_method(cls, level=cls._name)
-    return cls
-
-Nstxu = createMachine('nstxu')
 
 
 class ImmutableMachine(Mapping):

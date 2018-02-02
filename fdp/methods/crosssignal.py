@@ -8,11 +8,12 @@ Created on Fri Jul 15 16:39:37 2016
 from __future__ import division
 from builtins import range
 from builtins import object
+import numpy as np
 from scipy.signal import firwin, filtfilt, fftconvolve, hilbert
 from scipy.signal.spectral import _spectral_helper
 from scipy.stats import linregress
-import numpy as np
-from .globals import FdpError, FdpWarning
+
+from ..lib.globals import FdpError, FdpWarning
 
 
 class CrossSignal(object):
@@ -561,7 +562,7 @@ class CrossSignal(object):
         iend = np.searchsorted(self.freqs, fend)
 
         # Calculate crossphase slope over specified frequency range
-        slope, intercept, _, _, _ = linregress(self.freqs[istart:iend + 1] 
+        slope, intercept, _, _, _ = linregress(self.freqs[istart:iend + 1]
             * 1000, self.crossphase_binavg[istart:iend + 1])
 
         # Convert slope units to rad/Hz and return

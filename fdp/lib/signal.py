@@ -19,7 +19,7 @@ import inspect
 import types
 import numpy as np
 
-from .globals import FdpError, VERBOSE
+from .globals import FdpError
 
 
 class Signal(np.ndarray):
@@ -40,17 +40,13 @@ class Signal(np.ndarray):
                    axes_values=[radiusSignal, timeSignal])
     """
     def __new__(cls, input_array=[], **kwargs):
-        if VERBOSE:
-            print('      {}.__new__ BEGIN with cls {}'.
-                  format(kwargs['_name'], cls))
-        # ndarray.view().copy() calls __array_finalize__
         obj = np.asanyarray(input_array).view(cls).copy()
         for key in iter(kwargs):
             setattr(obj, key, kwargs[key])
         return obj
 
     def __init__(self, **kwargs):
-        pass
+        self.mdsshape = self._get_mdsshape()
 
     def __array_finalize__(self, obj):
         """
@@ -63,20 +59,10 @@ class Signal(np.ndarray):
         """
         objdict = getattr(obj, '__dict__', None)
         if obj is None or objdict is None:
-            # logic for explicit constructor
             return
-
-        if VERBOSE:
-            print('        {}.__array_finalize__: BEGIN'.
-                  format(self._name))
-
         # logic for view casting and slicing/copy
         objaxes = getattr(obj, 'axes', None)
         objslic = getattr(obj, '_slic', None)
-        if VERBOSE:
-            print('          obj.axes is {}'.format(objaxes))
-            print('          obj._slic is {}'.format(objslic))
-
         for key in iter(objdict):
             if objaxes and key in objaxes:
                 # skip copy of axis attributes
@@ -86,7 +72,6 @@ class Signal(np.ndarray):
                 setattr(self, key, objdict[key][:])
             else:
                 setattr(self, key, objdict[key])
-
         if objdict.get('_fname') == 'transpose':
             if objaxes is not None:
                 if '_fargs' in objdict:
@@ -96,7 +81,6 @@ class Signal(np.ndarray):
         _deltmpattr = True
         if objdict.get('_debug'):
             _deltmpattr = False
-
         if objaxes:
             for axis in objaxes:
                 if objslic is not None:
@@ -104,21 +88,12 @@ class Signal(np.ndarray):
                     obj_axis = getattr(obj, axis)
                     if isinstance(objslic, (slice,list,np.ndarray)):
                         # logic for 1D arrays
-                        if VERBOSE:
-                            print('        {}.__array_finalize__: slicing axis {} with obj._slic'.
-                                  format(self._name, axis))
                         setattr(self, axis, obj_axis[objslic])
                     elif isinstance(objslic, tuple):
                         # logic for multi-dim arrays
                         slic_axis = tuple([objslic[objaxes.index(axisaxis)] for
                                            axisaxis in (obj_axis.axes + [axis])])
-                        if VERBOSE:
-                            print('        {}.__array_finalize__: slicing axis {} with {}'.
-                                  format(self._name, axis, slic_axis))
                         if isinstance(slic_axis[0], (int, int, float, np.generic)):
-                            if VERBOSE:
-                                print('        {}.__array_finalize__: single-point slice'.
-                                      format(self._name))
                             # "point_axes" is a dict with axis keys and dict values
                             if axis in self.point_axes:
                                 raise FdpError('Point axis already present')
@@ -137,9 +112,6 @@ class Signal(np.ndarray):
                         raise FdpError('obj._slic is unexpected type')
                 else:
                     # obj._slic is undefined; copy each axis as is
-                    if VERBOSE:
-                        print('        {}.__array_finalize__: copying axis {} to self'.
-                              format(self._name, axis))
                     setattr(self, axis, getattr(obj, axis, None))
 
         # clean-up temp attributes
@@ -159,28 +131,10 @@ class Signal(np.ndarray):
             delattrtry(obj, '_fargs')
             delattrtry(obj, '_fkwargs')
 
-        if VERBOSE:
-            print('        {}.__array_finalize__: END'.
-                  format(self._name))
-
     def __array_wrap__(self, out_arr, context=None):
-        if VERBOSE:
-            print('      {}.__array_wrap__ BEGIN'.format(self._name))
-            #print('Called __array_wrap__:')
-            #print('__array_wrap__: self is %s' % type(self))
-            #print('__array_wrap__:  arr is %s' % type(out_arr))
-            # then just call the parent
-            #print('__array_wrap__: context is %s' % context)
         return np.ndarray.__array_wrap__(self, out_arr, context)
 
     def __array_prepare__(self, out_arr, context=None):
-        if VERBOSE:
-            print('      {}.__array_prepare__ BEGIN'.format(self._name))
-            #print('Called __array_prepare__:')
-            #print('__array_prepare__: self is %s' % type(self))
-            #print('__array_prepare__:  arr is %s' % type(out_arr))
-            # then just call the parent
-            #print('__array_prepare__: context is %s' % context)
         return np.ndarray.__array_prepare__(self, out_arr, context)
 
     def __getitem__(self, index):
@@ -188,47 +142,20 @@ class Signal(np.ndarray):
         self must be Signal class for this to be called, so therefore
         must have the _slic attribute. The _slic attribute preserves indexing for attributes
         '''
-
-        if VERBOSE:
-            print('      {}.__getitem__: BEGIN with index {} and shape {}'.
-                  format(self._name, index, self.shape))
-            #print('      {}.__getitem__: type(self) is {}'.format(self._name, type(self)))
-            #print('      {}.__getitem__: self.ndim is {}'.format(self._name, self.ndim))
-            #print('      {}.__getitem__: self.shape is {}'.format(self._name, self.shape))
-            #print('      {}.__getitem__: type(index) is {}'.format(self._name, type(index)))
-
         # This passes index to array_finalize after a new signal obj is created
         # to assign axes
         def parseindex(index, dims):
             # format index to account for single elements and pad with appropriate slices.
             #int2slc=lambda i: slice(-1,-2,-1) if int(i) == -1 else slice(int(i),int(i)+1)
-            if VERBOSE:
-                print('        {}.__getitem__.parseindex(): BEGIN with index {} and dims {}'.
-                      format(self._name, index, dims))
             if isinstance(index, (list, slice, np.ndarray)):
                 # index is list, slice, or ndarray
-                if VERBOSE:
-                    print('        {}.__getitem__.parseindex(): index is list|slice|ndarray'.
-                          format(self._name))
                 if dims < 2:
-                    if VERBOSE:
-                        print('        {}.__getitem__.parseindex(): ndim < 2 and returning'.
-                              format(self._name))
                     return index
                 else:
-                    if VERBOSE:
-                        print('        {}.__getitem__.parseindex(): ndim >= 2'.
-                              format(self._name))
                     newindex = [index]
             elif isinstance(index, (int, int, float, np.generic)):
-                if VERBOSE:
-                    print('        {}.__getitem__.parseindex(): index is int|long|float|generic'.
-                          format(self._name))
                 newindex = [int(index)]
             elif isinstance(index, tuple):
-                if VERBOSE:
-                    print('        {}.__getitem__.parseindex(): index is tuple'.
-                          format(self._name))
                 newindex = [int(i) if isinstance(i, (int, int, float, np.generic))
                             else i for i in index]
             # check for ellipses in newindex
@@ -243,39 +170,22 @@ class Signal(np.ndarray):
             else:
                 # no elipses
                 newindex = newindex + ([slice(None)] * (dims - len(newindex)))
-            if VERBOSE:
-                print('        {}.__getitem__.parseindex(): END with newindex {}'.
-                      format(self._name, newindex))
             return tuple(newindex)
 
         slcindex = parseindex(index, self.ndim)
         self._slic = slcindex
-        if VERBOSE:
-            print('      {}.__getitem__: slcindex is {}'.format(
-                self._name, slcindex))
-
-        if self._empty is True:
-            self._get_mdsdata()
-
-        if VERBOSE:
-            #print('      {}.__getitem__: self.shape is {}'.format(self._name, self.shape))
-            print('      {}.__getitem__: CALLING super().__getitem__(slcindex)'.
-                  format(self._name))
-
-        # super().__getitem__() calls __array_finalize__()
+        self._get_mdsdata()
         return super(Signal, self).__getitem__(slcindex)
 
     def _get_mdsdata(self):
         if self._empty is True:
-            # get MDSplus data
-            if VERBOSE:
-                print('      {}._get_mdsdata: BEGIN'.format(self._name))
             data = self._root._get_mdsdata(self)
             self.resize(data.shape, refcheck=False)
             self[:] = data
-            if VERBOSE:
-                print('      {}._get_mdsdata: END'.format(self._name))
             self._empty = False
+
+    def _get_mdsshape(self):
+        return self._root._get_mdsshape(self)
 
     def __getattr__(self, attribute):
         if attribute is '_parent' or self._parent is None:
@@ -288,21 +198,11 @@ class Signal(np.ndarray):
             return attr
 
     def __repr__(self):
-        if VERBOSE:
-            print('      {}.__repr__ BEGIN'.format(self._name))
-        if self._empty is True:
-            self._get_mdsdata()
-        if VERBOSE:
-            print('      {}.__repr__ CALLING SUPER()'.format(self._name))
+#        self._get_mdsdata()
         return super(Signal, self).__repr__()
 
     def __str__(self):
-        if VERBOSE:
-            print('      {}.__str__ BEGIN'.format(self._name))
-        if self._empty is True:
-            self._get_mdsdata()
-        if VERBOSE:
-            print('      {}.__str__ CALLING SUPER()'.format(self._name))
+#        self._get_mdsdata()
         return super(Signal, self).__str__()
 
     def __getslice__(self, start, stop):
@@ -315,37 +215,27 @@ class Signal(np.ndarray):
         currently still implement __getslice__(). Therefore, you have to
         override it in derived classes when implementing slicing.)
         """
-        if VERBOSE:
-            print('      {}.__getslice__: BEGIN with start {}/stop {}'.
-                  format(self._name, start, stop))
         return self.__getitem__(slice(start, stop))
 
     def __call__(self, **kwargs):
-        try:
-            slc = [slice(None)] * len(self.axes)
-        except TypeError:
-            print('No axes present for signal {}.'.format(self._name))
-            return None
-        for kwarg, values in list(kwargs.items()):
-            if kwarg not in self.axes:
-                print('      {} is not a valid axis.'.format(kwarg))
+        slc = [slice(None)] * len(self.axes)
+        for axis_name, axis_values in kwargs.iteritems():
+            if axis_name not in self.axes:
+                print('      {} is not a valid axis.'.format(axis_name))
                 raise TypeError
-            axis = self.axes.index(kwarg)
-            axis_value = getattr(self, kwarg)
+            iaxis = self.axes.index(axis_name)
+            axis = getattr(self, axis_name)
             try:
-                axis_inds = [np.abs(value - axis_value[:]).argmin()
-                             for value in values]
-                slc[axis] = slice(axis_inds[0], axis_inds[1])
+                axis_indices = [np.abs(value - axis[:]).argmin()
+                             for value in axis_values]
+                slc[iaxis] = slice(axis_indices[0], axis_indices[1])
             except TypeError:
-                axis_ind = np.abs(values - axis_value[:]).argmin()
-                #axis_inds = [axis_ind, axis_ind+1]
-                slc[axis] = axis_ind
+                axis_indices = np.abs(axis_values - axis[:]).argmin()
+                slc[iaxis] = axis_indices
         return self[tuple(slc)]
 
     def __bool__(self):
-        if self._empty is True:
-            self._get_mdsdata()
-        return bool(self.size)
+        return bool(self.mdsshape)
 
     def sigwrapper(f):
         def inner(*args, **kwargs):

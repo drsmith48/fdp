@@ -15,7 +15,7 @@ import numpy as np
 import xml.etree.ElementTree as ET
 
 from . import parse
-from .globals import FDP_DIR, VERBOSE
+from .globals import FDP_DIR
 from .node import Node
 from .signal import Signal
 
@@ -24,32 +24,21 @@ _tree_dict = {}
 
 def init_class(cls, module_tree, **kwargs):
     cls._name = module_tree.get('name')
-    if VERBOSE:
-        print('init_class({})'.format(cls._name))
     if cls not in cls._instances:
         cls._instances[cls] = {}
-
     for read_only in ['root', 'container', 'classparent']:
         try:
             setattr(cls, '_' + read_only, kwargs[read_only])
-            # print(cls._name, read_only, kwargs.get(read_only, 'Not there'))
         except:
             pass
-
     for item in ['mdstree', 'mdspath', 'units']:
         getitem = module_tree.get(item)
         if getitem is not None:
             setattr(cls, '_' + item, getitem)
-
     cls._base_items = set(cls.__dict__.keys())
-    if VERBOSE:
-        print('init_class({})  Calling parse_method({})'.
-              format(cls._name, cls._name))
     parse.parse_method(cls)
 
 
-# TODO: odd circulat dependence: Container.__getattr__ call Factory() and
-#       Factory() creates subclass of Container
 class Container(object):
     """
     Container class
@@ -66,30 +55,21 @@ class Container(object):
         self._dynamic_containers = {}
         self._tags = []
         self._title = module_tree.get('title')
-        if VERBOSE:
-            print('    {}.__init__()'.format(self._name))
         self._desc = module_tree.get('desc')
-
         for read_only in ['parent']:
             setattr(self, '_' + read_only, kwargs.get(read_only, None))
-
         try:
             self.shot = kwargs['shot']
             self._mdstree = kwargs['mdstree']
         except:
             pass
-
         if self.shot is not None:
             try:
                 cls._instances[cls][self.shot].append(self)
             except:
                 cls._instances[cls][self.shot] = [self]
-
         if top:
             self._get_dynamic_containers()
-
-        if VERBOSE:
-            print('    {}.__init__() Begin module parsing'.format(self._name))
 
         for node in module_tree.findall('node'):
             branch_str = self._get_branchstr()
@@ -109,19 +89,16 @@ class Container(object):
             setattr(self, method_defaults, defaults_dict)
 
         for element in module_tree.findall('axis'):
-            if VERBOSE:
-                print('    {}.__init__ Begin parsing axis {}'.
-                      format(self._name, element.get('name')))
             signal_list = parse.parse_signal(self, element)
             branch_str = self._get_branchstr()
             for signal_dict in signal_list:
                 SignalClassName = ''.join(['Axis', branch_str])
-                if SignalClassName not in cls._classes:
+                if SignalClassName in cls._classes:
+                    SignalClass = cls._classes[SignalClassName]
+                else:
                     SignalClass = type(SignalClassName, (Signal, cls), {})
                     parse.parse_method(SignalClass)
                     cls._classes[SignalClassName] = SignalClass
-                else:
-                    SignalClass = cls._classes[SignalClassName]
                 SignalObj = SignalClass(**signal_dict)
                 refs = parse.parse_refs(self, element, SignalObj._transpose)
                 if not refs:
@@ -129,9 +106,6 @@ class Container(object):
                 for axis, ref in zip(SignalObj.axes, refs):
                     setattr(SignalObj, axis, getattr(self, '_' + ref))
                 setattr(self, ''.join(['_', signal_dict['_name']]), SignalObj)
-            if VERBOSE:
-                print('    {}.__init__ End parsing axis {}'.
-                      format(self._name, element.get('name')))
 
         for branch in module_tree.findall('container'):
             name = branch.get('name')
@@ -149,20 +123,16 @@ class Container(object):
             self._containers[name] = ContainerObj
 
         for element in module_tree.findall('signal'):
-            if VERBOSE:
-                print('    {}.__init__ Begin parsing signal {}'.
-                      format(self._name, element.get('name')))
             signal_list = parse.parse_signal(self, element)
             branch_str = self._get_branchstr()
             for signal_dict in signal_list:
-                # name = element.get('name').format('').capitalize()
                 SignalClassName = ''.join(['Signal', branch_str])
-                if SignalClassName not in cls._classes:
+                if SignalClassName in cls._classes:
+                    SignalClass = cls._classes[SignalClassName]
+                else:
                     SignalClass = type(SignalClassName, (Signal, cls), {})
                     parse.parse_method(SignalClass)
                     cls._classes[SignalClassName] = SignalClass
-                else:
-                    SignalClass = cls._classes[SignalClassName]
                 SignalObj = SignalClass(**signal_dict)
                 refs = parse.parse_refs(self, element, SignalObj._transpose)
                 if not refs:
@@ -177,15 +147,9 @@ class Container(object):
                     setattr(SignalObj, method_defaults, defaults_dict)
                 setattr(self, signal_dict['_name'], SignalObj)
                 self._signals[signal_dict['_name']] = SignalObj
-            if VERBOSE:
-                print('    {}.__init__ End parsing signal {}'.
-                      format(self._name, element.get('name')))
 
         if top and hasattr(self, '_preprocess'):
             self._preprocess()
-
-        if VERBOSE:
-            print('    {}.__init__() End module parsing'.format(self._name))
 
     def __getattr__(self, attribute):
         try:
@@ -302,9 +266,6 @@ def Factory(module_branch, root=None, shot=None, parent=None):
     Factory method
     """
 
-    if VERBOSE:
-        print('Factory({}, root={}, shot={}, parent={})'.
-              format(module_branch, root, shot, parent))
     module_branch = module_branch.lower()
     module_list = module_branch.split('.')
     module = module_list[-1]
@@ -320,8 +281,6 @@ def Factory(module_branch, root=None, shot=None, parent=None):
         ContainerClassName = 'Container' + branch_str
         if ContainerClassName not in Container._classes:
             ContainerClass = type(ContainerClassName, (Container,), {})
-            if VERBOSE:
-                print('Factory() calling init_class()')
             init_class(ContainerClass, _tree_dict[module_branch], root=root,
                        container=module, classparent=parent.__class__)
             Container._classes[ContainerClassName] = ContainerClass

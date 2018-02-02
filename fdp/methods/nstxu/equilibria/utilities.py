@@ -8,8 +8,8 @@ Created on Mon Oct 19 15:42:07 2015
 import xml.etree.ElementTree as ET
 import os
 
-from ....classes.globals import FDP_DIR
-from ....classes.container import Container, _tree_dict, init_class
+from ....lib.globals import FDP_DIR
+from ....lib.container import Container, _tree_dict, init_class
 
 
 def create_efit_objs(self):

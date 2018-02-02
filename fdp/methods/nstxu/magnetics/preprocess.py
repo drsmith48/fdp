@@ -5,7 +5,7 @@ Created on Tue Jul 12 08:43:55 2016
 @author: drsmith
 """
 
-from ....classes.utilities import isContainer
+from ....lib.utilities import isContainer
 
 
 def preprocess(self):

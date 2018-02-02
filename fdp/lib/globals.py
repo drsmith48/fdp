@@ -46,7 +46,7 @@ class FdpWarning(Warning):
 
     def __init__(self, message=''):
         self.message = message
-        UserWarning
+#        UserWarning
 
     def __str__(self):
         return self.message

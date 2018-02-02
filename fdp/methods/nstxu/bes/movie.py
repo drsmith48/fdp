@@ -18,8 +18,8 @@ import scipy.interpolate
 from matplotlib import animation
 import matplotlib.pyplot as plt
 
-from ....classes.globals import FdpError
-from ....classes.utilities import isContainer
+from ....lib.globals import FdpError
+from ....lib.utilities import isContainer
 from . import utilities as UT
 
 
