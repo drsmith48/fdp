@@ -12,7 +12,7 @@ def preprocess(self):
     if isContainer(self) and self._name == 'magnetics':
         if self.shot < 200000:
             self.highn._mdstree = 'ops_pc'
-            for signame in self.highn.listSignals():
-                signal = getattr(self.highn, signame)
+            for signal in self.highn:
                 signal._mdstree = 'ops_pc'
                 signal.time._mdstree = 'ops_pc'
+                signal.__init__()
