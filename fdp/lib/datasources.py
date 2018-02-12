@@ -40,7 +40,7 @@ def machineAlias(machine=''):
     aliases = {'nstxu': ['nstx', 'nstxu', 'nstx-u'],
                'diiid': ['diiid', 'diii-d', 'd3d'],
                'cmod': ['cmod', 'c-mod']}
-    for key,value in aliases.iteritems():
+    for key,value in aliases.items():
         if machine.lower() in value:
             return key
     # invalid machine name

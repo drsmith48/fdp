@@ -146,14 +146,14 @@ class Machine(MutableMapping):
             usage_code = connection.get('getnci({},"USAGE")'.format(signal._mdsnode)).data()
             length = connection.get('getnci({},"LENGTH")'.format(signal._mdsnode)).data()
             if usage_code != 6 or length < 1:
-                return tuple()
+                raise ValueError
+            data = connection.get('shape({})'.format(signal._mdsnode)).data()
+            return tuple(data)
         except:
             msg = 'MDSplus connection error for shot {}, tree {}, and node {}'.format(
                 signal.shot, signal._mdstree, signal._mdsnode)
             warn(msg, FdpWarning)
             return tuple()
-        data = connection.get('shape({})'.format(signal._mdsnode)).data()
-        return tuple(data)
 
     def _get_mdsdata(self, signal):
         shot = signal.shot

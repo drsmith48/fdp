@@ -11,6 +11,6 @@
     </container>
     <container name='highn' mdstree='fastmag'>
         <axis name='time' units='s' mdsnode='dim_of(\bdot_l1dmivvhn1_raw)'></axis>
-        <signal name='highn_{}' units='V' axes='time' mdsnode='\bdot_l1dmivvhn{}_raw' range='1,16'></signal>
+        <signal name='ch{}' units='V' axes='time' mdsnode='\bdot_l1dmivvhn{}_raw' range='1,16'></signal>
     </container>
 </container>

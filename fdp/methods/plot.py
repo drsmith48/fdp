@@ -9,7 +9,7 @@ from __future__ import division
 
 from builtins import map
 from builtins import range
-from past.utils import old_div
+#from past.utils import old_div
 from warnings import warn
 #import time
 
@@ -220,8 +220,8 @@ class PlotAxes(plt.Axes):
         index_list = []
         stride = kwargs.get('stride', 0)
         if stride:
-            stride_levels = np.floor(
-                old_div(np.log(old_div(signal.size, 3000)), np.log(stride)))
+            stride_levels = np.floor(np.log(signal.size // 3000) // 
+                                     np.log(stride))
             index_list = [numba_decimate_stride(signal, int(level))
                           for level in np.arange(stride_levels) + 1]
         myplot = signal, index_list, args, kwargs
@@ -263,8 +263,8 @@ class PlotAxes(plt.Axes):
         kwargs.pop('stack', None)
         stride_level = 0
         if stride:
-            stride_level = int(
-                np.floor(old_div(np.log(old_div((ixmax - ixmin), nx)), np.log(stride))))
+            stride_level = int(np.floor(np.log((ixmax - ixmin) // nx) 
+                // np.log(stride)))
             if stride_level:
                 dec_index = index_list[stride_level - 1]
                 dec_min = np.searchsorted(dec_index, ixmin, side='left')
@@ -381,7 +381,7 @@ def decimate_plot(data, pixels=2000):
     # points >> pixels
     if data.size <= pixels * 2:
         return np.arange(data.size)
-    stride = old_div((data.size - 2), (pixels - 1))
+    stride = (data.size - 2) // (pixels - 1)
     endpoint = (pixels - 1) * stride + 1
     data2D = data[1:endpoint].reshape((pixels - 1, stride))
     column_offset = np.arange(pixels - 1) * stride + 1
@@ -403,7 +403,7 @@ def numba_decimate(data, pixels=2000):
     output = np.zeros(2 * pixels + 2, dtype=np.int64)
     if data.size <= pixels * 2:
         return np.arange(data.size)
-    stride = old_div((data.size - 2), (pixels - 1))
+    stride = (data.size - 2) // (pixels - 1)
     output[0] = 0
     output[-1] = data.size - 1
     for pixel in range(1, pixels + 1):
@@ -436,7 +436,7 @@ def numba_decimate(data, pixels=2000):
 def numba_decimate_stride(data, stride):
     # returns a decimated indices array to visually approximate a plot with
     # points >> pixels
-    elements = 2 * int(old_div((data.size - 2), stride)) + 2
+    elements = 2 * (data.size - 2) // stride + 2
     output = np.zeros(elements, dtype=np.int64)
     output[0] = 0
     output[-1] = data.size - 1

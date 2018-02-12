@@ -174,15 +174,16 @@ class Signal(np.ndarray):
 
         slcindex = parseindex(index, self.ndim)
         self._slic = slcindex
-        self._get_mdsdata()
+        if self._empty is True:
+            self._get_mdsdata()
         return super(Signal, self).__getitem__(slcindex)
 
     def _get_mdsdata(self):
         if self._empty is True:
             data = self._root._get_mdsdata(self)
             self.resize(data.shape, refcheck=False)
-            self[:] = data
             self._empty = False
+            self[:] = data
 
     def _get_mdsshape(self):
         return self._root._get_mdsshape(self)
