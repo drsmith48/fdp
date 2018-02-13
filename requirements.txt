@@ -1,3 +1,5 @@
+# python packages needed by all FDP users
+
 future
 numpy
 scipy
@@ -5,10 +7,3 @@ numba
 matplotlib
 pymssql
 MDSplus
-bumpversion
-coverage
-flake8
-autopep8
-sphinx
-pytest
-tox

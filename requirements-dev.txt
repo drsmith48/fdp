@@ -1,0 +1,11 @@
+# python packages needed by all FDP users
+-r requirements.txt
+
+# extra packages needed by FDP developers
+bumpversion
+coverage
+flake8
+autopep8
+sphinx
+pytest
+tox
