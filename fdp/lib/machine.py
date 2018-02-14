@@ -6,19 +6,31 @@ Created on Wed Nov 25 12:05:14 2015
 """
 from __future__ import print_function
 from builtins import str, map, range
-from collections import Mapping, MutableMapping, deque
+from collections import Sized, Iterable, Container, deque
 import os
 from warnings import warn
 import numpy as np
 import MDSplus as mds
 
-from .logbook import Logbook
+from . import logbook
+from . import parse
 from .shot import Shot
 from .globals import FDP_DIR, FdpError, FdpWarning
 from .datasources import machineAlias, MDS_SERVERS, EVENT_SERVERS
 
 
-class Machine(MutableMapping):
+
+def machineFactory(name=''):
+    machine_name = machineAlias(name)
+    class_name = 'Machine' + machine_name.capitalize()
+    cls = type(class_name, (Machine, ), {})
+    cls._name = machine_name
+    parse.parse_method(cls, level='top')
+    parse.parse_method(cls, level=cls._name)
+    return cls
+
+
+class Machine(Sized, Iterable, Container):
     """
     Factory root class that contains shot objects and MDS access methods.
 
@@ -42,8 +54,7 @@ class Machine(MutableMapping):
     def __init__(self, shotlist=None, xp=None, date=None):
         self._shots = {}  # shot dictionary with shot number (int) keys
         self._classlist = {}
-#        self._name = machineAlias(name)
-        self._logbook = Logbook(name=self._name, root=self)
+        self._logbook = logbook.Logbook(name=self._name, root=self)
         event_server = EVENT_SERVERS[self._name]
         self._eventConnection = mds.Connection('{}:{}'.format(event_server['hostname'],
                                                               event_server['port']))
@@ -56,51 +67,38 @@ class Machine(MutableMapping):
                 self._connections.append(connection)
         self.s0 = Shot(0, root=self, parent=self)
         if shotlist or xp or date:
-            self.addshot(shotlist=shotlist, xp=xp, date=date)
+            self._addshot(shotlist=shotlist, xp=xp, date=date)
 
     def __getattr__(self, name):
-        """
-        machine object attribute is string with "s" prepended
-        on shot number; enables tab completion functionality
-
-        >>> shot = nstx.s141000
-        >>> dir(nstx)
-        """
         try:
             shot = int(name.split('s')[1])
+            return self[shot]
         except:
-            msg = "'{}' object has no attribute '{}'".format(type(self), name)
-            raise AttributeError(msg)
-        if shot not in self._shots:
-            self._shots[shot] = Shot(shot, root=self, parent=self)
-        return self._shots[shot]
-
+            raise AttributeError('bad attr: {}'.format(name))
+    
     def __repr__(self):
         return '<machine {}>'.format(self._name.upper())
 
     def __iter__(self):
-        return iter(list(self._shots.values()))
+        # iterate over Shot objects in _shots.values()
+        # (not over shot numbers in _shots.keys())
+        return iter(self._shots.values())
 
-    def __contains__(self, value):
-        return value in self._shots
+    def __contains__(self, key):
+        return key in self._shots
 
     def __len__(self):
-        return len(list(self._shots.keys()))
+        return len(self._shots)
 
-    def __delitem__(self, item):
-        self._shots.__delitem__(item)
+    def __delitem__(self, key):
+        del self._shots[key]
 
     def __getitem__(self, shot):
-        """
-        machine object dictionary key is shot number integer
-
-        >>> shot = nstx[141000]
-        >>> for shot in nstx:
-        ...     print(shot)
-        """
+        if not isinstance(shot, int):
+            raise TypeError('expect integer shot number: {} type: {}'.format(shot, type(shot)))
         if shot == 0:
             return self.s0
-        if shot not in self._shots:
+        if shot not in self:
             self._shots[shot] = Shot(shot, root=self, parent=self)
         return self._shots[shot]
 
@@ -108,10 +106,7 @@ class Machine(MutableMapping):
         pass
 
     def __dir__(self):
-        shotlist = ['s0']
-        shotlist.extend(['s{}'.format(shot)
-                         for shot in iter(list(self._shots.keys()))])
-        return shotlist
+        return ['s{}'.format(shot) for shot in self._shots.keys()]
 
     def _get_logbook_credentials(self):
         # override with methods/<machine>/_get_logbook_credentials.py
@@ -167,7 +162,6 @@ class Machine(MutableMapping):
             msg = 'MDSplus connection error for shot {}, tree {}, and node {}'.format(
                 signal.shot, signal._mdstree, signal._mdsnode)
             warn(msg, FdpWarning)
-            # TODO: return value of failed connection?
             return np.zeros(0)
         if getattr(signal, '_raw_of', None) is not None:
             data = data.raw_of()
@@ -188,14 +182,14 @@ class Machine(MutableMapping):
                              module[0] is not '_']
         return self._modules
 
-    def addshot(self, shotlist=None, date=None, xp=None):
+    def _addshot(self, shotlist=None, date=None, xp=None):
         """
         Load shots into the Machine class
 
         **Usage**
 
-            >>> nstxu.addshot([140000 140001])
-            >>> nstxu.addshot(xp=1032)
+            >>> nstxu._addshot([140000 140001])
+            >>> nstxu._addshot(xp=1032)
 
         Note: You can reference shots even if the shots have not been loaded.
 
@@ -217,24 +211,21 @@ class Machine(MutableMapping):
             if shot not in self._shots:
                 self._shots[shot] = Shot(shot, root=self, parent=self)
 
-    def addxp(self, xp=None):
-        self.addshot(xp=xp)
+    def _addxp(self, xp=None):
+        self._addshot(xp=xp)
 
-    def adddate(self, date=None):
-        self.addshot(date=date)
+    def _adddate(self, date=None):
+        self._addshot(date=date)
 
-    def listshot(self):
-        keys = list(self._shots.keys())
+    def _shotlist(self):
+        keys = self._shots.keys()
         keys.sort()
         for shotkey in keys:
             shot = self._shots[shotkey]
             print('{} in XP {} on {}'.format(shot.shot, shot.xp, shot.date))
+        return keys
 
-    def get_shotlist(self, date=None, xp=None, verbose=False):
-        # return a list of shots
-        return self._logbook.get_shotlist(date=date, xp=xp, verbose=verbose)
-
-    def setevent(self, event, shot_number=None, data=None):
+    def _setevent(self, event, shot_number=None, data=None):
         event_data = bytearray()
         if shot_number is not None:
             shot_data = shot_number // 256**np.arange(4) % 256
@@ -246,7 +237,7 @@ class Machine(MutableMapping):
         status = self._eventConnection.get(event_string)
         return status
 
-    def wfevent(self, event, timeout=0):
+    def _wfevent(self, event, timeout=0):
         event_string = 'kind(_data=wfevent("{}",*,{})) == 0BU ? "timeout"' \
                        ': _data'.format(event, timeout)
         data = self._eventConnection.get(event_string).value
@@ -261,7 +252,7 @@ class Machine(MutableMapping):
             return shot_number, ''.join(map(chr, data))
         return data
 
-    def find(self, tag, obj=None):
+    def _find(self, tag, obj=None):
         root = getattr(self, '_root', self)
         find_list = set([])
         for module in root.s0._modules:
@@ -295,16 +286,16 @@ class Machine(MutableMapping):
         find_list.sort()
         return find_list
 
-    def filter_shots(self, date=None, xp=None):
+    def _filter_shots(self, date=None, xp=None):
         """
         Get a Machine-like object with an immutable shotlist for XP(s)
         or date(s)
         """
-        self.addshot(xp=xp, date=date)
+        self._addshot(xp=xp, date=date)
         return ImmutableMachine(xp=xp, date=date, parent=self)
 
 
-class ImmutableMachine(Mapping):
+class ImmutableMachine(Sized, Iterable, Container):
     """
     An immutable Machine-like class for dates and XPs.
 
@@ -359,12 +350,12 @@ class ImmutableMachine(Mapping):
     def __dir__(self):
         return ['s{}'.format(shot) for shot in self._shots]
 
-    def logbook(self):
+    def _logbook(self):
         for shotnum in self._shots:
             shot = self._shots[shotnum]
             shot.logbook()
 
-    def list_shots(self):
+    def _listshots(self):
         for shotnum in self._shots:
             shot = self._shots[shotnum]
             print('{} in XP {} on {}'.format(shot.shot, shot.xp, shot.date))

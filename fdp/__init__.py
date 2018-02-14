@@ -5,5 +5,8 @@ Created on Wed Nov 25 19:34:56 2015
 @author: ktritz
 """
 
-from .lib.main import Nstxu
 __version__ = '0.2.3'
+
+from . import lib
+
+Nstxu = lib.machine.machineFactory('nstxu')
