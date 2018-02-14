@@ -36,7 +36,7 @@ def init_class(cls, module_tree, **kwargs):
         if getitem is not None:
             setattr(cls, '_' + item, getitem)
     cls._base_items = set(cls.__dict__.keys())
-    parse.parse_method(cls)
+    parse.parse_submachine(cls)
 
 
 class Container(object):
@@ -97,7 +97,7 @@ class Container(object):
                     SignalClass = cls._classes[SignalClassName]
                 else:
                     SignalClass = type(SignalClassName, (Signal, cls), {})
-                    parse.parse_method(SignalClass)
+                    parse.parse_submachine(SignalClass)
                     cls._classes[SignalClassName] = SignalClass
                 SignalObj = SignalClass(**signal_dict)
                 refs = parse.parse_refs(self, element, SignalObj._transpose)
@@ -131,7 +131,7 @@ class Container(object):
                     SignalClass = cls._classes[SignalClassName]
                 else:
                     SignalClass = type(SignalClassName, (Signal, cls), {})
-                    parse.parse_method(SignalClass)
+                    parse.parse_submachine(SignalClass)
                     cls._classes[SignalClassName] = SignalClass
                 SignalObj = SignalClass(**signal_dict)
                 refs = parse.parse_refs(self, element, SignalObj._transpose)

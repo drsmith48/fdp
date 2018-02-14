@@ -12,29 +12,31 @@ import numpy as np
 
 from .globals import FDP_DIR
 
+METHODS_DIR = os.path.join(FDP_DIR, 'methods')
 
-def parse_method(obj, level=None):
-    if level is 'top':
-        # logic for initial parse of fdp/methods
-        module = 'methods'
-        method_path = FDP_DIR
-        module_chain = module
-    elif level is not None:
-        # logic for parsing fdp/methods/<machine>
-        module = obj._name
-        method_path = os.path.join(FDP_DIR, 'methods')
-        module_chain = 'methods.' + module
-    else:
-        # logic for parsing everything below fdp/methods/<machine>
-        branch = obj._get_branch()
-        branch_list = branch.split('.')
-        module = branch_list.pop()
-        machine = obj._root._name
-        method_path = os.path.join(FDP_DIR,
-                                   'methods',
-                                   machine,
-                                   *branch_list)
-        module_chain = '.'.join(['methods', machine, branch])
+def parse_top(obj):
+    module = 'methods'
+    parse_methods(obj, module=module, method_path=FDP_DIR, 
+                  module_chain=module)
+
+def parse_machine(obj):
+    module = obj._name
+    module_chain = '.'.join(['methods', module])
+    parse_methods(obj, module=module, method_path=METHODS_DIR, 
+                  module_chain=module_chain)    
+
+def parse_submachine(obj):
+    branch = obj._get_branch()
+    branch_list = branch.split('.')
+    module = branch_list.pop()
+    machine = obj._root._name
+    method_path = os.path.join(METHODS_DIR, machine, *branch_list)
+    module_chain = '.'.join(['methods', machine, branch])
+    parse_methods(obj, module=module, method_path=method_path, 
+                  module_chain=module_chain)
+        
+        
+def parse_methods(obj=None, module='', method_path='', module_chain=''):
     if os.path.exists(os.path.join(method_path, module)):
         method_object = __import__(
             module_chain, globals(), locals(), ['__file__'], 2)

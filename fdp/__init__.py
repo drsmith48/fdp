@@ -9,4 +9,4 @@ __version__ = '0.2.3'
 
 from . import lib
 
-Nstxu = lib.machine.machineFactory('nstxu')
+Nstxu = lib.machine.machineClassFactory('nstxu')

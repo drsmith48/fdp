@@ -12,16 +12,12 @@ import numpy as np
 from collections import MutableMapping
 
 from .container import Factory
-from .globals import VERBOSE
 
 
 class Shot(MutableMapping):
 
     def __init__(self, shot, root=None, parent=None):
         self.shot = shot
-        if VERBOSE:
-            print('  s{}.__init__'.format(self.shot))
-        #self._shotobj = self
         self._root = root
         self._parent = parent
         self._logbook = root._logbook
@@ -32,28 +28,17 @@ class Shot(MutableMapping):
         self._efits = []
 
     def __getattr__(self, attribute):
-        if VERBOSE:
-            print('  s{}.__getattr__({})'.format(self.shot, attribute))
         if attribute in self._modules:
             if self._modules[attribute] is None:
-                if VERBOSE:
-                    print('  s{}.__getattr__({}) calling Factory()'.
-                          format(self.shot, attribute))
-                self._modules[attribute] = Factory(attribute,
-                                                   root=self._root,
-                                                   shot=self.shot,
-                                                   parent=self)
+                self._modules[attribute] = \
+                    Factory(attribute, root=self._root, shot=self.shot, 
+                            parent=self)
             return self._modules[attribute]
-        try:
-            attr = getattr(self._parent, attribute)
-            if inspect.ismethod(attr):
-                return types.MethodType(attr.__func__, self)
-            else:
-                return attr
-        except:
-            raise
-            # raise AttributeError("{} shot: {} has no attribute '{}'".format(
-            #                          self._root._name, self.shot, attribute))
+        attr = getattr(self._parent, attribute)
+        if inspect.ismethod(attr):
+            return types.MethodType(attr.__func__, self)
+        else:
+            return attr
 
     def __repr__(self):
         return '<Shot {}>'.format(self.shot)
@@ -75,8 +60,6 @@ class Shot(MutableMapping):
         pass
 
     def __getitem__(self, item):
-        if VERBOSE:
-            print('  s{}.__getitem__({})'.format(self.shot, item))
         return self._modules[item]
 
     def __setitem__(self, item, value):

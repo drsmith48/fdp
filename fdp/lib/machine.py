@@ -12,25 +12,24 @@ from warnings import warn
 import numpy as np
 import MDSplus as mds
 
-from . import logbook
-from . import parse
+from .logbook import Logbook
+from .parse import parse_top, parse_machine
 from .shot import Shot
 from .globals import FDP_DIR, FdpError, FdpWarning
 from .datasources import machineAlias, MDS_SERVERS, EVENT_SERVERS
 
 
-
-def machineFactory(name=''):
+def machineClassFactory(name=''):
     machine_name = machineAlias(name)
     class_name = 'Machine' + machine_name.capitalize()
-    cls = type(class_name, (Machine, ), {})
-    cls._name = machine_name
-    parse.parse_method(cls, level='top')
-    parse.parse_method(cls, level=cls._name)
-    return cls
+    MachineClass = type(class_name, (AbstractMachine, ), {})
+    MachineClass._name = machine_name
+    parse_top(MachineClass)
+    parse_machine(MachineClass)
+    return MachineClass
 
 
-class Machine(Sized, Iterable, Container):
+class AbstractMachine(Sized, Iterable, Container):
     """
     Factory root class that contains shot objects and MDS access methods.
 
@@ -54,7 +53,7 @@ class Machine(Sized, Iterable, Container):
     def __init__(self, shotlist=None, xp=None, date=None):
         self._shots = {}  # shot dictionary with shot number (int) keys
         self._classlist = {}
-        self._logbook = logbook.Logbook(name=self._name, root=self)
+        self._logbook = Logbook(name=self._name, root=self)
         event_server = EVENT_SERVERS[self._name]
         self._eventConnection = mds.Connection('{}:{}'.format(event_server['hostname'],
                                                               event_server['port']))
@@ -184,7 +183,7 @@ class Machine(Sized, Iterable, Container):
 
     def _addshot(self, shotlist=None, date=None, xp=None):
         """
-        Load shots into the Machine class
+        Load shots into the AbstractMachine class
 
         **Usage**
 
@@ -288,7 +287,7 @@ class Machine(Sized, Iterable, Container):
 
     def _filter_shots(self, date=None, xp=None):
         """
-        Get a Machine-like object with an immutable shotlist for XP(s)
+        Get a AbstractMachine-like object with an immutable shotlist for XP(s)
         or date(s)
         """
         self._addshot(xp=xp, date=date)
@@ -297,12 +296,12 @@ class Machine(Sized, Iterable, Container):
 
 class ImmutableMachine(Sized, Iterable, Container):
     """
-    An immutable Machine-like class for dates and XPs.
+    An immutable AbstractMachine-like class for dates and XPs.
 
     The shotlist is auto-loaded based on date or XP, and the shotlist
     can not be modified.
 
-    Machine.filter_shots() returns an ImmutableMachine object.
+    AbstractMachine.filter_shots() returns an ImmutableMachine object.
 
     **Usage**::
 
