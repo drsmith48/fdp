@@ -66,7 +66,7 @@ class AbstractMachine(Sized, Iterable, Container):
                 self._connections.append(connection)
         self.s0 = Shot(0, root=self, parent=self)
         if shotlist or xp or date:
-            self._addshot(shotlist=shotlist, xp=xp, date=date)
+            self.addshot(shotlist=shotlist, xp=xp, date=date)
 
     def __getattr__(self, name):
         try:
@@ -93,10 +93,8 @@ class AbstractMachine(Sized, Iterable, Container):
         del self._shots[key]
 
     def __getitem__(self, shot):
-        if not isinstance(shot, int):
-            raise TypeError('expect integer shot number: {} type: {}'.format(shot, type(shot)))
-        if shot == 0:
-            return self.s0
+#        if shot == 0:
+#            return self.s0
         if shot not in self:
             self._shots[shot] = Shot(shot, root=self, parent=self)
         return self._shots[shot]
@@ -180,8 +178,20 @@ class AbstractMachine(Sized, Iterable, Container):
                              if os.path.isdir(os.path.join(module_dir, module)) and
                              module[0] is not '_']
         return self._modules
+    
+    def _get_shots(self, xp=None, date=None):
+        shots = []
+        if date:
+            if not isinstance(date, (list, tuple)):
+                date = [date]
+            shots.extend(self._logbook.get_shotlist(date=list(date)))
+        if xp:
+            if not isinstance(xp, (list, tuple)):
+                xp = [xp]
+            shots.extend(self._logbook.get_shotlist(xp=list(xp)))
+        return shots
 
-    def _addshot(self, shotlist=None, date=None, xp=None):
+    def addshot(self, shotlist=None, date=None, xp=None):
         """
         Load shots into the AbstractMachine class
 
@@ -198,33 +208,31 @@ class AbstractMachine(Sized, Iterable, Container):
             if not isinstance(shotlist, (list, tuple)):
                 shotlist = [shotlist]
             shots.extend(list(shotlist))
-        if date:
-            if not isinstance(date, (list, tuple)):
-                date = [date]
-            shots.extend(self._logbook.get_shotlist(date=list(date)))
-        if xp:
-            if not isinstance(xp, (list, tuple)):
-                xp = [xp]
-            shots.extend(self._logbook.get_shotlist(xp=list(xp)))
-        for shot in np.unique(shots):
-            if shot not in self._shots:
-                self._shots[shot] = Shot(shot, root=self, parent=self)
+        shots.extend(self._get_shots(xp=xp, date=date))
+        for shot in shots:
+            self[shot]
 
-    def _addxp(self, xp=None):
-        self._addshot(xp=xp)
+    def shotlist(self, xp=None, date=None, quiet=False):
+        if xp or date:
+            shotlist = self._get_shots(xp=xp, date=date)
+        else:
+            shotlist = list(self._shots.keys())
+        shotlist.sort()
+        if not quiet:
+            for shotnum in shotlist:
+                shot = self[shotnum]
+                print('{} in XP {} on {}'.format(shot.shot, shot.xp, shot.date))
+        return shotlist
 
-    def _adddate(self, date=None):
-        self._addshot(date=date)
+    def filter(self, date=None, xp=None):
+        """
+        Get a AbstractMachine-like object with an immutable shotlist for XP(s)
+        or date(s)
+        """
+        self.addshot(xp=xp, date=date)
+        return ImmutableMachine(xp=xp, date=date, parent=self)
 
-    def _shotlist(self):
-        keys = self._shots.keys()
-        keys.sort()
-        for shotkey in keys:
-            shot = self._shots[shotkey]
-            print('{} in XP {} on {}'.format(shot.shot, shot.xp, shot.date))
-        return keys
-
-    def _setevent(self, event, shot_number=None, data=None):
+    def setevent(self, event, shot_number=None, data=None):
         event_data = bytearray()
         if shot_number is not None:
             shot_data = shot_number // 256**np.arange(4) % 256
@@ -236,7 +244,7 @@ class AbstractMachine(Sized, Iterable, Container):
         status = self._eventConnection.get(event_string)
         return status
 
-    def _wfevent(self, event, timeout=0):
+    def wfevent(self, event, timeout=0):
         event_string = 'kind(_data=wfevent("{}",*,{})) == 0BU ? "timeout"' \
                        ': _data'.format(event, timeout)
         data = self._eventConnection.get(event_string).value
@@ -251,7 +259,7 @@ class AbstractMachine(Sized, Iterable, Container):
             return shot_number, ''.join(map(chr, data))
         return data
 
-    def _find(self, tag, obj=None):
+    def find(self, tag, obj=None):
         root = getattr(self, '_root', self)
         find_list = set([])
         for module in root.s0._modules:
@@ -285,14 +293,6 @@ class AbstractMachine(Sized, Iterable, Container):
         find_list.sort()
         return find_list
 
-    def _filter_shots(self, date=None, xp=None):
-        """
-        Get a AbstractMachine-like object with an immutable shotlist for XP(s)
-        or date(s)
-        """
-        self._addshot(xp=xp, date=date)
-        return ImmutableMachine(xp=xp, date=date, parent=self)
-
 
 class ImmutableMachine(Sized, Iterable, Container):
     """
@@ -316,45 +316,43 @@ class ImmutableMachine(Sized, Iterable, Container):
         self._shots = {}
         self._parent = parent
         self._name = self._parent._name
-        shotlist = self._parent.get_shotlist(xp=xp, date=date)
+        shotlist = self._parent.shotlist(xp=xp, date=date, quiet=True)
         for shot in shotlist:
-            self._shots[shot] = getattr(self._parent, 's{}'.format(shot))
+            self._shots[shot] = self._parent[shot]
 
     def __getattr__(self, name):
         try:
             shot = int(name.split('s')[1])
-            return self._shots[shot]
+            return self[shot]
         except:
-            raise AttributeError("'{}' object has no attribute '{}'".format(
-                type(self), name))
+            raise AttributeError('bad attr: {}'.format(name))
 
     def __repr__(self):
         return '<immutable machine {}>'.format(self._name.upper())
 
     def __iter__(self):
-        return iter(list(self._shots.values()))
+        return iter(self._shots.values())
 
-    def __contains__(self, value):
-        return value in self._shots
+    def __contains__(self, key):
+        return key in self._shots
 
     def __len__(self):
-        return len(list(self._shots.keys()))
+        return len(self._shots)
 
     def __delitem__(self, item):
         pass
 
     def __getitem__(self, item):
-        pass
+        return self._shots[item]
 
     def __dir__(self):
-        return ['s{}'.format(shot) for shot in self._shots]
+        return ['s{}'.format(shot) for shot in self]
 
-    def _logbook(self):
-        for shotnum in self._shots:
-            shot = self._shots[shotnum]
-            shot.logbook()
-
-    def _listshots(self):
-        for shotnum in self._shots:
-            shot = self._shots[shotnum]
-            print('{} in XP {} on {}'.format(shot.shot, shot.xp, shot.date))
+    def shotlist(self, quiet=False):
+        shotlist = list(self._shots.keys())
+        shotlist.sort()
+        if not quiet:
+            for shotnum in shotlist:
+                shot = self[shotnum]
+                print('{} in XP {} on {}'.format(shot.shot, shot.xp, shot.date))
+        return shotlist

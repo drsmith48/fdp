@@ -1,6 +1,6 @@
 from __future__ import print_function
 import socket
-from fdp.classes import datasources
+from fdp.lib import datasources
 
 # some valid shots for testing
 shotlist = [204620, 204551, 141000, 204670, 204956, 204990]

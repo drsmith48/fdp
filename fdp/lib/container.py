@@ -79,7 +79,6 @@ class Container(object):
                 cls._classes[NodeClassName] = NodeClass
             else:
                 NodeClass = cls._classes[NodeClassName]
-            # NodeClass._mdstree = parse_mdstree(self, node)
             setattr(self, node.get('name'), NodeClass(node, parent=self))
 
         for element in module_tree.findall('defaults'):

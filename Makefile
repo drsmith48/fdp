@@ -79,7 +79,7 @@ outdated:  # list outdated conda and pip packages
 
 .PHONY: test
 test: ## run pytest in current Python environment
-	pytest
+	pytest test/
 
 
 .PHONY: coverage
