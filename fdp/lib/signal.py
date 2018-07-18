@@ -220,7 +220,7 @@ class Signal(np.ndarray):
 
     def __call__(self, **kwargs):
         slc = [slice(None)] * len(self.axes)
-        for axis_name, axis_values in kwargs.iteritems():
+        for axis_name, axis_values in kwargs.items():
             if axis_name not in self.axes:
                 print('      {} is not a valid axis.'.format(axis_name))
                 raise TypeError

@@ -3,7 +3,7 @@ import socket
 from fdp.lib import datasources
 
 # some valid shots for testing
-shotlist = [204620, 204551, 141000, 204670, 204956, 204990]
+shotlist = [204620, 204551, 142301, 204670, 204956, 204990]
 
 
 def server_connection():

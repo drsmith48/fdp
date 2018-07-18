@@ -18,4 +18,4 @@ def setup_nstx():
 @pytest.fixture(scope="module")
 def setup_shot(setup_nstx):
     nstx = setup_nstx
-    return nstx.s141000
+    return nstx.s142301
