@@ -34,7 +34,7 @@ def init_class(cls, module_tree, **kwargs):
     for item in ['mdstree', 'mdspath', 'units']:
         getitem = module_tree.get(item)
         if getitem is not None:
-            setattr(cls, '_' + item, getitem)
+            setattr(cls, item, getitem)
     cls._base_items = set(cls.__dict__.keys())
     parse.parse_submachine(cls)
 
@@ -60,7 +60,7 @@ class Container(object):
             setattr(self, '_' + read_only, kwargs.get(read_only, None))
         try:
             self.shot = kwargs['shot']
-            self._mdstree = kwargs['mdstree']
+            self.mdstree = kwargs['mdstree']
         except:
             pass
         if self.shot is not None:

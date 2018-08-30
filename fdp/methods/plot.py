@@ -25,14 +25,16 @@ from ..lib.globals import FdpWarning
 # pg.mkQApp()
 
 
-def plot1d(signal, tmin=0.0, tmax=None, **kwargs):
+
+
+def plot1d(signal, time=None, tmin=0.0, tmax=None, **kwargs):
     xaxis = getattr(signal, signal.axes[0])
     kwargs.pop('stack', None)
     kwargs.pop('signals', None)
     kwargs.pop('maxrange', None)
     kwargs.pop('minrange', None)
     ax = kwargs.pop('axes', None)
-    ax.plot(xaxis, signal, **kwargs)
+    ax.plot(xaxis, signal, label=signal._name, **kwargs)
     ax.set_ylabel('{} ({})'.format(signal._name, signal.units))
     ax.set_xlabel('{} ({})'.format(xaxis._name, xaxis.units))
     ax.set_title('{} -- {} -- {}'.format(signal._parent._name.upper(),
@@ -40,6 +42,15 @@ def plot1d(signal, tmin=0.0, tmax=None, **kwargs):
                                          signal.shot))
     if tmax is not None:
         ax.set_xlim(tmin, tmax)
+    if time is not None and signal.axes[0]=='time':
+        if hasattr(time, '__iter__'):
+            if len(time)>1:
+                ax.set_xlim(time[0], time[1])
+            else:
+                ax.set_xlim(-100,time[0])
+        else:
+            ax.set_xlim(-100,time)
+
 
 
 def plot2d(signal, tmin=0.0, tmax=None, **kwargs):
@@ -102,50 +113,49 @@ def plot4d(data, xaxis, yaxis, zaxis, taxis, **kwargs):
 plot_methods = [None, plot1d, plot2d, plot3d, plot4d]
 
 
-def plot(signal, fig=None, ax=None, **kwargs):
+def plot(signal, fig=None, axes=None, **kwargs):
     defaults = getattr(signal, '_plot_defaults', {})
-    defaults.update(kwargs)
+    kwargs.update(defaults)
     if signal._is_container():
-        plot_container(signal, **defaults)
+        plot_container(signal, **kwargs)
         return
 
     signal[:]
     if signal.size==0:
-        warn("Empty signal {}".format(signal._mdsnode), FdpWarning)
+        warn("Empty signal {}".format(signal.mdsnode), FdpWarning)
     signal.time[:]
     if signal.time.size==0:
-        warn("Empty signal.time {}".format(signal.time._mdsnode), FdpWarning)
+        warn("Empty signal.time {}".format(signal.time.mdsnode), FdpWarning)
 
     dims = signal.ndim
-    multi_axis = defaults.get('multi', None)
+    multi_axis = kwargs.get('multi', None)
     if multi_axis is 'shot':
-        #plot_multishot(signal, **defaults)
+        #plot_multishot(signal, **kwargs)
         #plt.title(signal._name, fontsize=20)
         return
     if multi_axis in signal.axes and dims > 1:
-        plot_multi(signal, ax=ax, **defaults)
+        plot_multi(signal, ax=axes, **kwargs)
         plt.title(signal._name, fontsize=20)
         return
 
-    if fig is None:
-        fig = plt.figure()
-
-    if ax is None:
-        ax = fig.add_subplot(111)
+    if axes is None:
+        if fig is None:
+            fig = plt.figure()
+        axes = fig.add_subplot(111)
 
     if 1:  # dims > 1:
-        plot_methods[dims](signal, axes=ax, **defaults)
+        plot_methods[dims](signal, axes=axes, **kwargs)
         # fig.show()
     else:
         if not len(fig.axes):
-            ax = PlotAxes(plot_methods[dims], fig, [0.1, 0.1, 0.8, 0.8])
+            axes = PlotAxes(plot_methods[dims], fig, [0.1, 0.1, 0.8, 0.8])
         else:
-            ax = fig.axes[0]
-        ax.callbacks.connect('xlim_changed', ax._update_all_plots)
-        fig.add_axes(ax)
-        ax.plot(signal, **defaults)
+            axes = fig.axes[0]
+        axes.callbacks.connect('xlim_changed', axes._update_all_plots)
+        fig.add_axes(axes)
+        axes.plot(signal, **kwargs)
         fig.canvas.draw()
-        fig.canvas.mpl_connect('resize_event', ax._update_all_plots)
+        fig.canvas.mpl_connect('resize_event', axes._update_all_plots)
     # return fig
 
 

@@ -240,20 +240,20 @@ class Signal(np.ndarray):
 
     def sigwrapper(f):
         def inner(*args, **kwargs):
-            #print("getarg decorator: Function {} arguments were: {}, {}".format(f.__name__,args, kwargs))
             args[0]._fname = f.__name__
             if len(args) > 1:
                 args[0]._fargs = args[1:]
             args[0]._fkwargs = kwargs
-            return f(*args, **kwargs)
+            if kwargs:
+                return f(*args, **kwargs)
+            else:
+                return f(*args)
         return inner
 
     @sigwrapper
-    def amin(self, *args, **kwargs):
-        args[0]._fname = f.__name__
-        args[0]._fkwargs = kwargs
-        return super(Signal, self).amin(*args, **kwargs)
+    def min(self, *args, **kwargs):
+        return super(Signal, self).min(*args, **kwargs)
 
     @sigwrapper
-    def transpose(self, *args, **kwargs):
-        return super(Signal, self).transpose(*args, **kwargs)
+    def transpose(self, *args):
+        return super(Signal, self).transpose(*args)

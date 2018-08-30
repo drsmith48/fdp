@@ -7,7 +7,7 @@ shotlist = [204620, 204551, 142301, 204670, 204956, 204990]
 
 
 def server_connection():
-    machine = datasources.machineAlias('nstx')
+    machine = datasources.canonicalMachineName('nstx')
     servers = [datasources.MDS_SERVERS[machine],
                datasources.LOGBOOK_CREDENTIALS[machine]]
     for server in servers:
