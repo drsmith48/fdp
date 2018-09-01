@@ -27,6 +27,8 @@ def trace_lines(frame, event, arg):
     filename = shorten_filename(filename)
     # if event == 'line':
     #     print('   Executing line  {}  in  {}  in  {}'.format(line_no, func_name, filename))
+    if func_name[0] == '<':
+        return
     if event == 'return':
         print('   Returning from  {}  in  {}'.format(func_name, filename))
 
@@ -34,7 +36,7 @@ def trace_lines(frame, event, arg):
 def trace_calls(frame, event, arg):
     if event != 'call':
         # return for non-call events
-        print('passed event: {}'.format(event))
+        print('skipped event: {}'.format(event))
         return
     try:
         # caller details
@@ -53,15 +55,22 @@ def trace_calls(frame, event, arg):
     if call_name == 'write':
         # Ignore write calls from print statements
         return
-    if (fdp_module_path.as_posix() not in call_filename.as_posix()) and  \
+    if (fdp_module_path.as_posix() not in call_filename.as_posix()) or \
         (fdp_module_path.as_posix() not in caller_filename.as_posix()):
         # ignore calls fully outside of the FDP package
-        return
+        if caller_name == '<module>':
+            print('Line {} in {}'.format(caller_lineno, caller_filename.name))
+        else:
+            return
     # adjust filenames relative to FDP directory
     caller_shortfn = shorten_filename(caller_filename)
     call_shortfn = shorten_filename(call_filename)
-    if caller_name == '<module>':
-        print('Line {} in {}'.format(caller_lineno, caller_filename.name))
+    if call_name[0] == '<' or \
+        'parse' in call_name or \
+        'parse' in caller_name or \
+        '__get' in call_name or \
+        '__get' in caller_name:
+        return
     print('   Calling  {}  in  {}  from line  {}  in  {}  in  {}'.format(
             call_name,
             call_shortfn.as_posix(),

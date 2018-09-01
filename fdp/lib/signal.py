@@ -79,9 +79,9 @@ class Signal(np.ndarray):
                     self.axes = [obj.axes[i] for i in objdict['_fargs'][0]]
                 else:
                     self.axes = obj.axes[::-1]
-        _deltmpattr = True
-        if objdict.get('_debug'):
-            _deltmpattr = False
+        # _deltmpattr = True
+        # if objdict.get('_debug'):
+        #     _deltmpattr = False
         if objaxes:
             for axis in objaxes:
                 if objslic is not None:
@@ -116,21 +116,25 @@ class Signal(np.ndarray):
                     setattr(self, axis, getattr(obj, axis, None))
 
         # clean-up temp attributes
-        def delattrtry(ob, at):
-            try:
-                delattr(ob, at)
-            except:
-                pass
+        # def delattrtry(ob, at):
+        #     try:
+        #         delattr(ob, at)
+        #     except:
+        #         pass
 
-        if _deltmpattr:
-            delattrtry(self, '_slic')
-            delattrtry(self, '_fname')
-            delattrtry(self, '_fargs')
-            delattrtry(self, '_fkwargs')
-            delattrtry(obj, '_slic')
-            delattrtry(obj, '_fname')
-            delattrtry(obj, '_fargs')
-            delattrtry(obj, '_fkwargs')
+        # if _deltmpattr:
+        for attrname in ['_slic','_fname','_fargs','_fkwargs']:
+            for o in [self, obj]:
+                if hasattr(o, attrname):
+                    delattr(o, attrname)
+        # delattrtry(self, '_slic')
+        # delattrtry(self, '_fname')
+        # delattrtry(self, '_fargs')
+        # delattrtry(self, '_fkwargs')
+        # delattrtry(obj, '_slic')
+        # delattrtry(obj, '_fname')
+        # delattrtry(obj, '_fargs')
+        # delattrtry(obj, '_fkwargs')
 
     def __array_wrap__(self, out_arr, context=None):
         return np.ndarray.__array_wrap__(self, out_arr, context)

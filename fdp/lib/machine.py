@@ -37,32 +37,65 @@ class MachineABC(Sized, Iterable, Container):
     Abstract base class for top-level machines
     """
 
-    _connections = []
-    _parent = None
+    _connections = None
+    _logbook = None
     _modules = None
-    _name = ''
+    _parent = None
+    _name = None
 
     def __init__(self, shotlist=None, xp=None, date=None):
         self._shots = {}  # shot dictionary with shot number (int) keys
         self._make_server_connections()
-        self._logbook = Logbook(name=self._name, root=self)
-        if shotlist or xp or date:
+        self._set_modules()
+        if self._logbook is None:
+            self._logbook = Logbook(name=self._name, root=self)
+        if shotlist is not None or xp is not None or date is not None:
             self.addshot(shotlist=shotlist, xp=xp, date=date)
 
-    def __getattr__(self, name):
+    def _make_server_connections(self):
+        if self._connections is None:
+            mds_server = MDS_SERVERS[self._name]
+            hostname = mds_server['hostname']
+            port = mds_server['port']
+            self._connections = [None, None]
+            for i in range(len(self._connections)):
+                connection = mds.Connection('{}:{}'.format(hostname, port))
+                connection.tree = None
+                self._connections[i] = connection
+        # event_server = EVENT_SERVERS[self._name]
+        # self._eventConnection = mds.Connection('{}:{}'.format(event_server['hostname'],
+        #                                                       event_server['port']))
+
+    def _set_modules(self):
+        if self._modules is None:
+            machine_diag_dir = os.path.join(FDP_DIR, 'diagnostics', self._name)
+            self._modules = []
+            for module in os.listdir(machine_diag_dir):
+                diag_dir = os.path.join(machine_diag_dir, module)
+                if os.path.isdir(diag_dir) and module[0] is not '_':
+                    self._modules.append(module)
+
+    def _validate_shot(self, shot):
+        if shot not in self._shots:
+            self._shots[shot] = Shot(shot, self)
+
+    def __getattr__(self, attr_name):
         try:
-            shot = int(name.split('s')[1])
-            return self[shot]
+            shot = int(attr_name.split('s')[1])
+            self._validate_shot(shot)
+            return self._shots[shot]
         except:
-            raise AttributeError('bad attr: {}'.format(name))
+            # import pdb
+            # pdb.set_trace()
+            raise AttributeError('bad attr: {}'.format(attr_name))
+            # raise
     
+    def __getitem__(self, shot):
+        self._validate_shot(shot)
+        return self._shots[shot]
+
     def __delitem__(self, key):
         del self._shots[key]
-
-    def __getitem__(self, shot):
-        if shot not in self:
-            self._shots[shot] = Shot(shot, root=self, parent=self)
-        return self._shots[shot]
 
     def __setitem__(self, item, value):
         pass
@@ -86,18 +119,6 @@ class MachineABC(Sized, Iterable, Container):
 
     def __str__(self):
         return 'Machine {}'.format(self._name.upper())
-
-    def _make_server_connections(self):
-        if len(self._connections) is 0:
-            mds_server = MDS_SERVERS[self._name]
-            for _ in range(2):
-                connection = mds.Connection('{}:{}'.format(mds_server['hostname'],
-                                                           mds_server['port']))
-                connection.tree = None
-                self._connections.append(connection)
-        event_server = EVENT_SERVERS[self._name]
-        self._eventConnection = mds.Connection('{}:{}'.format(event_server['hostname'],
-                                                              event_server['port']))
 
     def _get_logbook_credentials(self):
         # override with methods/<machine>/_get_logbook_credentials.py
@@ -173,14 +194,6 @@ class MachineABC(Sized, Iterable, Container):
             data = signal._postprocess(data)
         return data
 
-    def _get_modules(self):
-        if self._modules is None:
-            module_dir = os.path.join(FDP_DIR, 'diagnostics', self._name)
-            self._modules = [module for module in os.listdir(module_dir)
-                             if os.path.isdir(os.path.join(module_dir, module)) and
-                             module[0] is not '_']
-        return self._modules
-    
     def _get_shots(self, xp=None, date=None):
         shots = []
         if date:
@@ -195,15 +208,7 @@ class MachineABC(Sized, Iterable, Container):
 
     def addshot(self, shotlist=None, date=None, xp=None):
         """
-        Load shots into the AbstractMachine class
-
-        **Usage**
-
-            >>> nstxu._addshot([140000 140001])
-            >>> nstxu._addshot(xp=1032)
-
-        Note: You can reference shots even if the shots have not been loaded.
-
+        Load shots
         """
         shots = []
         if shotlist:
@@ -212,9 +217,12 @@ class MachineABC(Sized, Iterable, Container):
             shots.extend(list(shotlist))
         shots.extend(self._get_shots(xp=xp, date=date))
         for shot in shots:
-            self[shot]
+            self._validate_shot(shot)
 
     def shotlist(self, xp=None, date=None, quiet=False):
+        """
+        Generate shotlist
+        """
         if xp or date:
             shotlist = self._get_shots(xp=xp, date=date)
         else:
@@ -270,7 +278,7 @@ class MachineABC(Sized, Iterable, Container):
             while True:
                 try:
                     container = container_queue.popleft()
-                    container._get_dynamic_containers()
+                    container._set_dynamic_containers()
                     container_queue.extend(list(container._containers.values()))
                     if obj is None or obj.lower() == 'signal':
                         for signal in list(container._signals.values()):

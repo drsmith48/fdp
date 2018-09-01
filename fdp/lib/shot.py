@@ -11,34 +11,65 @@ import types
 import numpy as np
 from collections import MutableMapping
 
-from .container import Factory
+from .container import container_factory
 
 
 class Shot(MutableMapping):
 
-    def __init__(self, shot, root=None, parent=None):
+    _modules = None
+    _logbook = None
+    _machine = None
+
+    def __init__(self, shot, machine):
         self.shot = shot
-        self._root = root
-        self._parent = parent
-        self._logbook = root._logbook
-        self._logbook_entries = []
-        self._modules = {module: None for module in root._get_modules()}
+
+        # set class attributes if needed
+        cls = self.__class__
+        if cls._machine is None:
+            cls._machine = machine
+        if cls._modules is None:
+            cls._modules = {module: None for module in self._machine._modules}
+        if cls._logbook is None:
+            cls._logbook = self._machine._logbook
+
+        self._logbook_entries = self._logbook.get_entries(shot=self.shot)
+        self._efits = []
         self.xp = self._get_xp()
         self.date = self._get_date()
-        self._efits = []
 
-    def __getattr__(self, attribute):
-        if attribute in self._modules:
-            if self._modules[attribute] is None:
-                self._modules[attribute] = \
-                    Factory(attribute, root=self._root, shot=self.shot, 
-                            parent=self)
-            return self._modules[attribute]
-        attr = getattr(self._parent, attribute)
-        if inspect.ismethod(attr):
-            return types.MethodType(attr.__func__, self)
+    def _get_xp(self):
+        # query logbook for XP, return XP (list if needed)
+        xplist = []
+        for entry in self._logbook_entries:
+            if entry['xp']:
+                xplist.append(entry['xp'])
+        return list(set(xplist))
+
+    def _get_date(self):
+        # query logbook for rundate, return rundate
+        if self._logbook_entries:
+            return self._logbook_entries[0]['rundate']
         else:
-            return attr
+            return
+
+    def __getattr__(self, attr_name):
+        if attr_name in self._modules:
+            if self._modules[attr_name] is None:
+                self._modules[attr_name] = container_factory(attr_name,
+                                                             root=self._machine,
+                                                             shot=self.shot,
+                                                             parent=self)
+            return self._modules[attr_name]
+        else:
+            try:
+                attr = getattr(self._machine, attr_name)
+            except AttributeError as e:
+                # print('{} is not attribute of {}'.format(attr_name, self._machine._name))
+                raise e
+            if inspect.ismethod(attr):
+                return types.MethodType(attr.__func__, self)
+            else:
+                return attr
 
     def __repr__(self):
         return '<Shot {}>'.format(self.shot)
@@ -50,8 +81,8 @@ class Shot(MutableMapping):
         # return iter(self._modules.values())
         return iter(self._modules)
 
-    def __contains__(self, value):
-        return value in self._modules
+    def __contains__(self, key):
+        return key in self._modules
 
     def __len__(self):
         return len(list(self._modules.keys()))
@@ -67,29 +98,6 @@ class Shot(MutableMapping):
 
     def __dir__(self):
         return list(self._modules.keys())
-
-    def _get_xp(self):
-        # query logbook for XP, return XP (list if needed)
-        if not self._logbook_entries:
-            self._logbook_entries = self._logbook.get_entries(shot=self.shot)
-        xplist = []
-        for entry in self._logbook_entries:
-            if entry['xp']:
-                xplist.append(entry['xp'])
-        if len(np.unique(xplist)) == 1:
-            xp = xplist.pop(0)
-        else:
-            xp = np.unique(xplist)
-        return xp
-
-    def _get_date(self):
-        # query logbook for rundate, return rundate
-        if not self._logbook_entries:
-            self._logbook_entries = self._logbook.get_entries(shot=self.shot)
-        date = 0
-        if self._logbook_entries:
-            date = self._logbook_entries[0]['rundate']
-        return date
 
     def logbook(self):
         # show logbook entries

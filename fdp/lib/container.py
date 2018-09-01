@@ -14,6 +14,8 @@ import types
 import numpy as np
 import xml.etree.ElementTree as ET
 
+# import kernprof
+
 from . import parse
 from .globals import FDP_DIR
 from .node import Node
@@ -21,7 +23,7 @@ from .signal import Signal
 
 _tree_dict = {}
 
-
+# @profile
 def init_class(cls, module_tree, **kwargs):
     cls._name = module_tree.get('name')
     if cls not in cls._instances:
@@ -38,7 +40,7 @@ def init_class(cls, module_tree, **kwargs):
     cls._base_items = set(cls.__dict__.keys())
     parse.parse_submachine(cls)
 
-
+# @profile
 class Container(object):
     """
     Container class
@@ -56,8 +58,8 @@ class Container(object):
         self._tags = []
         self._title = module_tree.get('title')
         self._desc = module_tree.get('desc')
-        for read_only in ['parent']:
-            setattr(self, '_' + read_only, kwargs.get(read_only, None))
+        self._parent = kwargs.get('parent', None)
+        # print('Init container class: {}'.format(self._name))
         try:
             self.shot = kwargs['shot']
             self.mdstree = kwargs['mdstree']
@@ -69,7 +71,7 @@ class Container(object):
             except:
                 cls._instances[cls][self.shot] = [self]
         if top:
-            self._get_dynamic_containers()
+            self._set_dynamic_containers()
 
         for node in module_tree.findall('node'):
             branch_str = self._get_branchstr()
@@ -155,8 +157,8 @@ class Container(object):
             if self._dynamic_containers[attribute] is None:
                 branch_path = '.'.join([self._get_branch(), attribute])
                 self._dynamic_containers[attribute] = \
-                    Factory(branch_path, root=self._root,
-                            shot=self.shot, parent=self)
+                    container_factory(branch_path, root=self._root,
+                                      shot=self.shot, parent=self)
 
             return self._dynamic_containers[attribute]
         except KeyError:
@@ -176,16 +178,21 @@ class Container(object):
         else:
             return attr
 
-    def _get_dynamic_containers(self):
-        if len(self._dynamic_containers) is 0:
+    def _set_dynamic_containers(self):
+        if not self._dynamic_containers:
             container_dir = self._get_path()
             if not os.path.isdir(container_dir):
                 return
             files = os.listdir(container_dir)
-            self._dynamic_containers = {container: None for container in
-                                        files if os.path.isdir(
-                                            os.path.join(container_dir, container)) and
-                                        container[0] is not '_'}
+            self._dynamic_containers = {}
+            for container in files:
+                subcontainer_dir = os.path.join(container_dir, container)
+                if container[0] is not '_' and os.path.isdir(subcontainer_dir):
+                    self._dynamic_containers[container] = None
+            # self._dynamic_containers = {container: None for container in
+            #                             files if os.path.isdir(
+            #                                 os.path.join(container_dir, container)) and
+            #                             container[0] is not '_'}
 
     @classmethod
     def _get_path(cls):
@@ -257,36 +264,37 @@ class Container(object):
         word_list.extend(self._tags)
         return np.any([string.lower() in word.lower() for word in word_list])
 
-
-def Factory(module_branch, root=None, shot=None, parent=None):
-    global _tree_dict
-
+# @profile
+def container_factory(module_branch, root=None, shot=None, parent=None):
     """
     Factory method
     """
 
+    global _tree_dict
     module_branch = module_branch.lower()
     module_list = module_branch.split('.')
     module = module_list[-1]
     branch_str = ''.join([word.capitalize() for word in module_list])
     if module_branch not in _tree_dict:
-        module_path = os.path.join(FDP_DIR, 'diagnostics', root._name,
+        module_path = os.path.join(FDP_DIR,
+                                   'diagnostics',
+                                   root._name,
                                    *module_list)
-        parse_tree = ET.parse(os.path.join(module_path,
-                                           ''.join([module, '.xml'])))
-        module_tree = parse_tree.getroot()
-        _tree_dict[module_branch] = module_tree
-    try:
-        ContainerClassName = 'Container' + branch_str
-        if ContainerClassName not in Container._classes:
-            ContainerClass = type(ContainerClassName, (Container,), {})
-            init_class(ContainerClass, _tree_dict[module_branch], root=root,
-                       container=module, classparent=parent.__class__)
-            Container._classes[ContainerClassName] = ContainerClass
-        else:
-            ContainerClass = Container._classes[ContainerClassName]
-
-        return ContainerClass(_tree_dict[module_branch], shot=shot,
-                              parent=parent, top=True)
-    except:
-        raise
+        xml_filename = module + '.xml'
+        parse_tree = ET.parse(os.path.join(module_path, xml_filename))
+        _tree_dict[module_branch] = parse_tree.getroot()
+    ContainerClassName = 'Container' + branch_str
+    if ContainerClassName in Container._classes:
+        ContainerClass = Container._classes[ContainerClassName]
+    else:
+        ContainerClass = type(ContainerClassName, (Container,), {})
+        init_class(ContainerClass,
+                   _tree_dict[module_branch],
+                   root=root,
+                   container=module,
+                   classparent=parent.__class__)
+        Container._classes[ContainerClassName] = ContainerClass
+    return ContainerClass(_tree_dict[module_branch],
+                          shot=shot,
+                          parent=parent,
+                          top=True)
