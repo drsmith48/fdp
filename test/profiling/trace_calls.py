@@ -65,11 +65,11 @@ def trace_calls(frame, event, arg):
     # adjust filenames relative to FDP directory
     caller_shortfn = shorten_filename(caller_filename)
     call_shortfn = shorten_filename(call_filename)
-    if call_name[0] == '<' or \
-        'parse' in call_name or \
-        'parse' in caller_name or \
-        '__get' in call_name or \
-        '__get' in caller_name:
+    if call_name[0] == '<':
+        # 'parse' in call_name or \
+        # 'parse' in caller_name or \
+        # '__get' in call_name or \
+        # '__get' in caller_name:
         return
     print('   Calling  {}  in  {}  from line  {}  in  {}  in  {}'.format(
             call_name,

@@ -11,7 +11,7 @@ import types
 import numpy as np
 from collections import MutableMapping
 
-from .container import container_factory
+from .container import containerClassFactory
 
 
 class Shot(MutableMapping):
@@ -55,10 +55,10 @@ class Shot(MutableMapping):
     def __getattr__(self, attr_name):
         if attr_name in self._modules:
             if self._modules[attr_name] is None:
-                self._modules[attr_name] = container_factory(attr_name,
-                                                             root=self._machine,
-                                                             shot=self.shot,
-                                                             parent=self)
+                self._modules[attr_name] = containerClassFactory(attr_name,
+                                                                 root=self._machine,
+                                                                 shot=self.shot,
+                                                                 parent=self)
             return self._modules[attr_name]
         else:
             try:

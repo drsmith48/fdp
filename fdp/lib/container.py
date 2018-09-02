@@ -23,8 +23,7 @@ from .signal import Signal
 
 _tree_dict = {}
 
-# @profile
-def init_class(cls, module_tree, **kwargs):
+def initContainerClass(cls, module_tree, **kwargs):
     cls._name = module_tree.get('name')
     if cls not in cls._instances:
         cls._instances[cls] = {}
@@ -40,7 +39,7 @@ def init_class(cls, module_tree, **kwargs):
     cls._base_items = set(cls.__dict__.keys())
     parse.parse_submachine(cls)
 
-# @profile
+
 class Container(object):
     """
     Container class
@@ -115,7 +114,7 @@ class Container(object):
                                           name.capitalize()])
             if ContainerClassName not in cls._classes:
                 ContainerClass = type(ContainerClassName, (cls, Container), {})
-                init_class(ContainerClass, branch, classparent=cls)
+                initContainerClass(ContainerClass, branch, classparent=cls)
                 cls._classes[ContainerClassName] = ContainerClass
             else:
                 ContainerClass = cls._classes[ContainerClassName]
@@ -157,8 +156,10 @@ class Container(object):
             if self._dynamic_containers[attribute] is None:
                 branch_path = '.'.join([self._get_branch(), attribute])
                 self._dynamic_containers[attribute] = \
-                    container_factory(branch_path, root=self._root,
-                                      shot=self.shot, parent=self)
+                    containerClassFactory(branch_path,
+                                          root=self._root,
+                                          shot=self.shot,
+                                          parent=self)
 
             return self._dynamic_containers[attribute]
         except KeyError:
@@ -264,8 +265,8 @@ class Container(object):
         word_list.extend(self._tags)
         return np.any([string.lower() in word.lower() for word in word_list])
 
-# @profile
-def container_factory(module_branch, root=None, shot=None, parent=None):
+
+def containerClassFactory(module_branch, root=None, shot=None, parent=None):
     """
     Factory method
     """
@@ -288,11 +289,11 @@ def container_factory(module_branch, root=None, shot=None, parent=None):
         ContainerClass = Container._classes[ContainerClassName]
     else:
         ContainerClass = type(ContainerClassName, (Container,), {})
-        init_class(ContainerClass,
-                   _tree_dict[module_branch],
-                   root=root,
-                   container=module,
-                   classparent=parent.__class__)
+        initContainerClass(ContainerClass,
+                           _tree_dict[module_branch],
+                           root=root,
+                           container=module,
+                           classparent=parent.__class__)
         Container._classes[ContainerClassName] = ContainerClass
     return ContainerClass(_tree_dict[module_branch],
                           shot=shot,

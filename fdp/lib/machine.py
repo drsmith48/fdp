@@ -25,14 +25,14 @@ def machineClassFactory(name=''):
     """
     machine_name = canonicalMachineName(name)
     class_name = 'Machine' + machine_name.capitalize()
-    MachineClass = type(class_name, (MachineABC,), {})
+    MachineClass = type(class_name, (Machine,), {})
     MachineClass._name = machine_name
     parse_top(MachineClass)
     parse_machine(MachineClass)
     return MachineClass
 
 
-class MachineABC(Sized, Iterable, Container):
+class Machine(Sized, Iterable, Container):
     """
     Abstract base class for top-level machines
     """
@@ -59,6 +59,7 @@ class MachineABC(Sized, Iterable, Container):
             port = mds_server['port']
             self._connections = [None, None]
             for i in range(len(self._connections)):
+                # TODO: delegate mds.Connection() to a separate thread and utilize lock objects
                 connection = mds.Connection('{}:{}'.format(hostname, port))
                 connection.tree = None
                 self._connections[i] = connection
@@ -302,6 +303,11 @@ class MachineABC(Sized, Iterable, Container):
         find_list = list(find_list)
         find_list.sort()
         return find_list
+
+
+# machine classes
+Nstxu = machineClassFactory('nstxu')
+D3D = machineClassFactory('d3d')
 
 
 class ImmutableMachine(Sized, Iterable, Container):
