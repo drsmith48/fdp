@@ -9,7 +9,7 @@ import xml.etree.ElementTree as ET
 import os
 
 from ....lib.globals import FDP_DIR
-from ....lib.container import Container, _tree_dict, init_class
+from ....lib.container import Container, _tree_dict, initContainerClass
 
 
 def create_efit_objs(self):
@@ -28,8 +28,8 @@ def create_efit_objs(self):
 
         if ContainerClassName not in Container._classes:
             ContainerClass = type(ContainerClassName, (Container,), {})
-            init_class(ContainerClass, _tree_dict[branch], root=self._root,
-                       container='equilibria', classparent=self.__class__)
+            initContainerClass(ContainerClass, _tree_dict[branch], root=self._root,
+                               container='equilibria', classparent=self.__class__)
             ContainerClass._name = efit
             Container._classes[ContainerClassName] = ContainerClass
         else:

@@ -19,7 +19,7 @@ class Node(object):
     def __init__(self, element, parent=None):
         self._parent = parent
         self._name = element.get('name')
-        self._mdsnode = parse_mdspath(self, element)[0]
+        self.mdsnode = parse_mdspath(self, element)[0]
         self._data = None
         self._title = element.get('title')
         self._desc = element.get('desc')

@@ -23,10 +23,17 @@ class Logbook(object):
         self._shot_query_prefix = ''
 
         self._logbook_connection = None
+        self._attemptedLogbookConnection = False
         self.logbook = {}
 
     def _make_logbook_connection(self):
-        self._credentials = self._root._get_logbook_credentials()
+        if not self._attemptedLogbookConnection:
+            self._attemptedLogbookConnection = True
+            self._credentials = self._root._get_logbook_credentials()
+        else:
+            return
+        if self._credentials is None:
+            return
         self._shotlist_query_prefix = (
             'SELECT DISTINCT rundate, shot, xp, voided '
             'FROM {} WHERE voided IS null').format(self._credentials['table'])
@@ -55,6 +62,8 @@ class Logbook(object):
     def _get_cursor(self):
         if not self._logbook_connection:
             self._make_logbook_connection()
+            if self._logbook_connection is None:
+                return
         try:
             cursor = self._logbook_connection.cursor()
             cursor.execute('SET ROWCOUNT 500')
@@ -64,6 +73,8 @@ class Logbook(object):
 
     def _shot_query(self, shot=[]):
         cursor = self._get_cursor()
+        if not cursor:
+            return
         if shot and not isinstance(shot, list):
             shot = [shot]
         for sh in shot:

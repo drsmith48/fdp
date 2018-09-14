@@ -16,72 +16,93 @@ from .logbook import Logbook
 from .parse import parse_top, parse_machine
 from .shot import Shot
 from .globals import FDP_DIR, FdpError, FdpWarning
-from .datasources import machineAlias, MDS_SERVERS, EVENT_SERVERS
+from .datasources import canonicalMachineName, MDS_SERVERS, EVENT_SERVERS
 
 
 def machineClassFactory(name=''):
-    machine_name = machineAlias(name)
+    """
+    Class factory to implement abstract machine class for specific machine
+    """
+    machine_name = canonicalMachineName(name)
     class_name = 'Machine' + machine_name.capitalize()
-    MachineClass = type(class_name, (AbstractMachine, ), {})
+    MachineClass = type(class_name, (Machine,), {})
     MachineClass._name = machine_name
     parse_top(MachineClass)
     parse_machine(MachineClass)
     return MachineClass
 
 
-class AbstractMachine(Sized, Iterable, Container):
+class Machine(Sized, Iterable, Container):
     """
-    Factory root class that contains shot objects and MDS access methods.
-
-    **Usage**::
-
-        >>> import fdf
-        >>> nstxu = fdf.nstxu()
-        >>> nstxu.s140000.logbook()
-        >>> nstxu.s140000.mpts.plot()
-
+    Abstract base class for top-level machines
     """
 
-    # Maintain a dictionary of cached MDS server connections to speed up
-    # access for multiple shots and trees. This is a static class variable
-    # to avoid proliferation of MDS server connections
-    _connections = []
-    _parent = None
+    _connections = None
+    _logbook = None
     _modules = None
-    _name = ''
+    _parent = None
+    _name = None
 
     def __init__(self, shotlist=None, xp=None, date=None):
         self._shots = {}  # shot dictionary with shot number (int) keys
-        self._classlist = {}
-        self._logbook = Logbook(name=self._name, root=self)
-        event_server = EVENT_SERVERS[self._name]
-        self._eventConnection = mds.Connection('{}:{}'.format(event_server['hostname'],
-                                                              event_server['port']))
-        if len(self._connections) is 0:
-            mds_server = MDS_SERVERS[self._name]
-            for _ in range(2):
-                connection = mds.Connection('{}:{}'.format(mds_server['hostname'],
-                                                           mds_server['port']))
-                connection.tree = None
-                self._connections.append(connection)
-        self.s0 = Shot(0, root=self, parent=self)
-        if shotlist or xp or date:
+        self._make_server_connections()
+        self._set_modules()
+        if self._logbook is None:
+            self._logbook = Logbook(name=self._name, root=self)
+        if shotlist is not None or xp is not None or date is not None:
             self.addshot(shotlist=shotlist, xp=xp, date=date)
 
-    def __getattr__(self, name):
-        try:
-            shot = int(name.split('s')[1])
-            return self[shot]
-        except:
-            raise AttributeError('bad attr: {}'.format(name))
-    
-    def __repr__(self):
-        return '<machine {}>'.format(self._name.upper())
+    def _make_server_connections(self):
+        if self._connections is None:
+            mds_server = MDS_SERVERS[self._name]
+            hostname = mds_server['hostname']
+            port = mds_server['port']
+            self._connections = [None, None]
+            for i in range(len(self._connections)):
+                # TODO: delegate mds.Connection() to a separate thread and utilize lock objects
+                connection = mds.Connection('{}:{}'.format(hostname, port))
+                connection.tree = None
+                self._connections[i] = connection
+        # event_server = EVENT_SERVERS[self._name]
+        # self._eventConnection = mds.Connection('{}:{}'.format(event_server['hostname'],
+        #                                                       event_server['port']))
 
-    def __iter__(self):
-        # iterate over Shot objects in _shots.values()
-        # (not over shot numbers in _shots.keys())
-        return iter(self._shots.values())
+    def _set_modules(self):
+        if self._modules is None:
+            machine_diag_dir = os.path.join(FDP_DIR, 'diagnostics', self._name)
+            self._modules = []
+            for module in os.listdir(machine_diag_dir):
+                diag_dir = os.path.join(machine_diag_dir, module)
+                if os.path.isdir(diag_dir) and module[0] is not '_':
+                    self._modules.append(module)
+
+    def _validate_shot(self, shot):
+        if shot not in self._shots:
+            self._shots[shot] = Shot(shot, self)
+
+    def __getattr__(self, attr_name):
+        try:
+            shot = int(attr_name.split('s')[1])
+            self._validate_shot(shot)
+            return self._shots[shot]
+        except:
+            # import pdb
+            # pdb.set_trace()
+            raise AttributeError('bad attr: {}'.format(attr_name))
+            # raise
+    
+    def __getitem__(self, shot):
+        self._validate_shot(shot)
+        return self._shots[shot]
+
+    def __delitem__(self, key):
+        del self._shots[key]
+
+    def __setitem__(self, item, value):
+        pass
+
+    def __dir__(self):
+        return ['s{}'.format(shot) for shot in self._shots.keys()]
 
     def __contains__(self, key):
         return key in self._shots
@@ -89,21 +110,16 @@ class AbstractMachine(Sized, Iterable, Container):
     def __len__(self):
         return len(self._shots)
 
-    def __delitem__(self, key):
-        del self._shots[key]
+    def __iter__(self):
+        # iterate over Shot objects in _shots.values()
+        # (not over shot numbers in _shots.keys())
+        return iter(self._shots.values())
 
-    def __getitem__(self, shot):
-#        if shot == 0:
-#            return self.s0
-        if shot not in self:
-            self._shots[shot] = Shot(shot, root=self, parent=self)
-        return self._shots[shot]
+    def __repr__(self):
+        return '<machine {}>'.format(self._name.upper())
 
-    def __setitem__(self, item, value):
-        pass
-
-    def __dir__(self):
-        return ['s{}'.format(shot) for shot in self._shots.keys()]
+    def __str__(self):
+        return 'Machine {}'.format(self._name.upper())
 
     def _get_logbook_credentials(self):
         # override with methods/<machine>/_get_logbook_credentials.py
@@ -124,42 +140,50 @@ class AbstractMachine(Sized, Iterable, Container):
             connection.openTree(tree, shot)
             connection.tree = (tree, shot)
         except:
-            connection.tree = (None, None)
-        finally:
-            self._connections.insert(0, connection)
+            # raise
+            connection.tree = None
+        # finally:
+        self._connections.insert(0, connection)
         return connection
 
     def _get_mdsshape(self, signal):
-        if signal.shot is 0:
-            print('No MDS data exists for model tree')
-            return tuple()
+        # if signal.shot is 0:
+        #     print('No MDS data exists for model tree')
+        #     return
+        connection = self._get_connection(signal.shot, signal.mdstree)
         try:
-            connection = self._get_connection(signal.shot, signal._mdstree)
-            usage_code = connection.get('getnci({},"USAGE")'.format(signal._mdsnode)).data()
-            length = connection.get('getnci({},"LENGTH")'.format(signal._mdsnode)).data()
+            usage_code = connection.get('getnci({},"USAGE")'.format(signal.mdsnode)).data()
+            length = connection.get('getnci({},"LENGTH")'.format(signal.mdsnode)).data()
             if usage_code != 6 or length < 1:
                 raise ValueError
-            data = connection.get('shape({})'.format(signal._mdsnode)).data()
-            return tuple(data)
+            return connection.get('shape({})'.format(signal.mdsnode)).data()
         except:
-            msg = 'MDSplus connection error for shot {}, tree {}, and node {}'.format(
-                signal.shot, signal._mdstree, signal._mdsnode)
-            warn(msg, FdpWarning)
-            return tuple()
+            return
 
     def _get_mdsdata(self, signal):
         shot = signal.shot
-        if shot is 0:
-            print('No MDS data exists for model tree')
-            return np.zeros(0)
-        connection = self._get_connection(shot, signal._mdstree)
+        # if shot is 0:
+        #     print('No MDS data exists for model tree')
+        #     return np.zeros(0)
+        connection = self._get_connection(shot, signal.mdstree)
+        if signal.mdstree.lower() == 'ptdata':
+            if 'Signal' in str(type(signal)):
+                mds_address = 'ptdata("{}", {:d})'.format(signal.mdsnode, shot)
+            elif 'Axis' in str(type(signal)):
+                mds_address = 'dim_of(ptdata("{}", {:d}))'.format(signal.mdsnode, shot)
+            else:
+                raise FdpError('bad mds data')
+        else:
+            mds_address = signal.mdsnode
         try:
-            data = connection.get(signal._mdsnode)
+            data = connection.get(mds_address)
         except:
+            # raise
             msg = 'MDSplus connection error for shot {}, tree {}, and node {}'.format(
-                signal.shot, signal._mdstree, signal._mdsnode)
-            warn(msg, FdpWarning)
-            return np.zeros(0)
+                signal.shot, signal.mdstree, mds_address)
+            raise FdpError(msg)
+            # warn(msg, FdpWarning)
+            # return np.zeros(0)
         if getattr(signal, '_raw_of', None) is not None:
             data = data.raw_of()
         if getattr(signal, '_dim_of', None) is not None:
@@ -171,14 +195,6 @@ class AbstractMachine(Sized, Iterable, Container):
             data = signal._postprocess(data)
         return data
 
-    def _get_modules(self):
-        if self._modules is None:
-            module_dir = os.path.join(FDP_DIR, 'diagnostics', self._name)
-            self._modules = [module for module in os.listdir(module_dir)
-                             if os.path.isdir(os.path.join(module_dir, module)) and
-                             module[0] is not '_']
-        return self._modules
-    
     def _get_shots(self, xp=None, date=None):
         shots = []
         if date:
@@ -193,15 +209,7 @@ class AbstractMachine(Sized, Iterable, Container):
 
     def addshot(self, shotlist=None, date=None, xp=None):
         """
-        Load shots into the AbstractMachine class
-
-        **Usage**
-
-            >>> nstxu._addshot([140000 140001])
-            >>> nstxu._addshot(xp=1032)
-
-        Note: You can reference shots even if the shots have not been loaded.
-
+        Load shots
         """
         shots = []
         if shotlist:
@@ -210,9 +218,12 @@ class AbstractMachine(Sized, Iterable, Container):
             shots.extend(list(shotlist))
         shots.extend(self._get_shots(xp=xp, date=date))
         for shot in shots:
-            self[shot]
+            self._validate_shot(shot)
 
     def shotlist(self, xp=None, date=None, quiet=False):
+        """
+        Generate shotlist
+        """
         if xp or date:
             shotlist = self._get_shots(xp=xp, date=date)
         else:
@@ -268,7 +279,7 @@ class AbstractMachine(Sized, Iterable, Container):
             while True:
                 try:
                     container = container_queue.popleft()
-                    container._get_dynamic_containers()
+                    container._set_dynamic_containers()
                     container_queue.extend(list(container._containers.values()))
                     if obj is None or obj.lower() == 'signal':
                         for signal in list(container._signals.values()):
@@ -292,6 +303,11 @@ class AbstractMachine(Sized, Iterable, Container):
         find_list = list(find_list)
         find_list.sort()
         return find_list
+
+
+# machine classes
+Nstxu = machineClassFactory('nstxu')
+D3D = machineClassFactory('d3d')
 
 
 class ImmutableMachine(Sized, Iterable, Container):

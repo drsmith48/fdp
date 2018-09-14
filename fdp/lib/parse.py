@@ -16,13 +16,13 @@ METHODS_DIR = os.path.join(FDP_DIR, 'methods')
 
 def parse_top(obj):
     module = 'methods'
-    parse_methods(obj, module=module, method_path=FDP_DIR, 
+    parse_methods(obj, module=module, method_path=FDP_DIR,
                   module_chain=module)
 
 def parse_machine(obj):
-    module = obj._name
-    module_chain = '.'.join(['methods', module])
-    parse_methods(obj, module=module, method_path=METHODS_DIR, 
+    machine_name = obj._name
+    module_chain = '.'.join(['methods', machine_name])
+    parse_methods(obj, module=machine_name, method_path=METHODS_DIR,
                   module_chain=module_chain)    
 
 def parse_submachine(obj):
@@ -35,16 +35,15 @@ def parse_submachine(obj):
     parse_methods(obj, module=module, method_path=method_path, 
                   module_chain=module_chain)
         
-        
 def parse_methods(obj=None, module='', method_path='', module_chain=''):
-    if os.path.exists(os.path.join(method_path, module)):
-        method_object = __import__(
-            module_chain, globals(), locals(), ['__file__'], 2)
-        if getattr(method_object, '__all__', None):
-            for method in method_object.__all__:
-                method_from_object = getattr(method_object, method)
-                setattr(obj, method, method_from_object)
-
+    if not os.path.exists(os.path.join(method_path, module)):
+        return
+    method_object = __import__(module_chain, globals(), locals(),
+                               ['__file__'], 2)
+    all = getattr(method_object, '__all__', [])
+    for method_name in all:
+        method = getattr(method_object, method_name)
+        setattr(obj, method_name, method)
 
 def parse_defaults(element):
     keys = list(element.keys())
@@ -52,7 +51,6 @@ def parse_defaults(element):
     keys.remove('method')
     defaults_dict = {key: element.get(key) for key in keys}
     return method_defaults, defaults_dict
-
 
 def fill_signal_dict(name=None, units=None, axes=None,
                      mdspath=None, mdstree=None, mdsshape=None,
@@ -67,8 +65,8 @@ def fill_signal_dict(name=None, units=None, axes=None,
             'axes': axes,
             'point_axes': [],
             'mdsshape':None,
-            '_mdsnode': mdspath,
-            '_mdstree': mdstree,
+            'mdsnode': mdspath,
+            'mdstree': mdstree,
             '_dim_of': dim_of,
             '_error': error,
             '_parent': parent,
@@ -199,7 +197,7 @@ def parse_error(obj, element):
         mdspath = element.get('mdspath')
         if mdspath is None:
             try:
-                mdspath = obj._mdspath
+                mdspath = obj.mdspath
                 error = '.'.join([mdspath, error])
             except:
                 pass
@@ -225,7 +223,7 @@ def parse_mdspath(obj, element):
             dim_of = None
         if mdspath is None:
             try:
-                mdspath = obj._mdspath
+                mdspath = obj.mdspath
             except:
                 pass
         if mdspath is not None:
@@ -238,6 +236,6 @@ def parse_mdspath(obj, element):
 
 def parse_mdstree(obj, element):
     mdstree = element.get('mdstree')
-    if mdstree is None and hasattr(obj, '_mdstree'):
-        mdstree = obj._mdstree
+    if mdstree is None and hasattr(obj, 'mdstree'):
+        mdstree = obj.mdstree
     return mdstree
