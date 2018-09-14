@@ -1,8 +1,10 @@
 import pathlib, fdp, os, sys
+import numpy as np
 
 fdp_module_path = pathlib.Path(fdp.__path__[0])
 mds_path = pathlib.Path(os.environ['MDSPLUS']) / 'mdsobjects' / 'python'
 python_path = pathlib.Path(sys.base_prefix) / 'lib'
+np_path = pathlib.Path(np.__path__[0])
 
 def shorten_filename(fn):
     try:
@@ -14,7 +16,10 @@ def shorten_filename(fn):
             try:
                 fn = fn.relative_to(python_path)
             except:
-                pass
+                try:
+                    fn = fn.relative_to(np_path)
+                except:
+                    pass
     return fn
 
 def trace_lines(frame, event, arg):
@@ -71,13 +76,12 @@ def trace_calls(frame, event, arg):
         # '__get' in call_name or \
         # '__get' in caller_name:
         return
+    if 'MDSplus' in call_filename.as_posix():
+        return
     print('   Calling  {}  in  {}  from line  {}  in  {}  in  {}'.format(
             call_name,
             call_shortfn.as_posix(),
             caller_lineno,
             caller_name,
             caller_shortfn.as_posix()))
-    if 'mdsplus' in call_filename.as_posix() or 'lib/python' in call_filename.as_posix():
-        return
-    else:
-        return trace_lines
+    return trace_lines

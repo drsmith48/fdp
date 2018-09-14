@@ -11,6 +11,7 @@ import os
 from warnings import warn
 import numpy as np
 import MDSplus as mds
+import threading
 
 from .logbook import Logbook
 from .parse import parse_top, parse_machine
@@ -38,6 +39,8 @@ class Machine(Sized, Iterable, Container):
     """
 
     _connections = None
+    _connected = False
+    _thread_events = None
     _logbook = None
     _modules = None
     _parent = None
@@ -57,12 +60,25 @@ class Machine(Sized, Iterable, Container):
             mds_server = MDS_SERVERS[self._name]
             hostname = mds_server['hostname']
             port = mds_server['port']
-            self._connections = [None, None]
-            for i in range(len(self._connections)):
-                # TODO: delegate mds.Connection() to a separate thread and utilize lock objects
+            nconnections = 2
+            self._connections = []
+            self._thread_events = []
+            for i in range(nconnections):
+                self._connections.append(None)
+                self._thread_events.append(threading.Event())
+            def connection_wrapper(i):
                 connection = mds.Connection('{}:{}'.format(hostname, port))
                 connection.tree = None
                 self._connections[i] = connection
+                ev = self._thread_events[i]
+                ev.set()
+            for i in range(len(self._connections)):
+                t = threading.Thread(target=connection_wrapper, args=(i,))
+                t.start()
+                # TODO: delegate mds.Connection() to a separate thread and utilize lock objects
+                # connection = mds.Connection('{}:{}'.format(hostname, port))
+                # connection.tree = None
+                # self._connections[i] = connection
         # event_server = EVENT_SERVERS[self._name]
         # self._eventConnection = mds.Connection('{}:{}'.format(event_server['hostname'],
         #                                                       event_server['port']))
@@ -126,6 +142,10 @@ class Machine(Sized, Iterable, Container):
         pass
 
     def _get_connection(self, shot, tree):
+        if not self._connected:
+            for ev in self._thread_events:
+                ev.wait()
+            self._connected = True
         for connection in self._connections:
             if connection.tree == (tree, shot):
                 self._connections.remove(connection)
