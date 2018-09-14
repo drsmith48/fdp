@@ -12,12 +12,12 @@ from .globals import FdpError
 
 MDS_SERVERS = {
     'nstxu': {'hostname': 'skylark.pppl.gov',
-              'port': '8501'}
+              'port': '8000'}
 }
 
 EVENT_SERVERS = {
     'nstxu': {'hostname': 'skylark.pppl.gov',
-              'port': '8501'},
+              'port': '8000'},
     'ltx': {'hostname': 'lithos.pppl.gov',
             'port': '8000'}
 }

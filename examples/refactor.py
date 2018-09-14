@@ -11,3 +11,4 @@ nstx = fdp.Nstxu()
 s = nstx[141711]
 ip = s.engineering.ip
 ip[:]
+print(ip.size, ip.max())
