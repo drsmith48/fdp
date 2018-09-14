@@ -8,6 +8,7 @@
 *.py.bak
 *$py.class
 __pycache__/
+.ipynb_checkpoints/
 
 ### OS exclusions
 *.DS_Store
