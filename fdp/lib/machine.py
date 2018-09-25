@@ -72,13 +72,9 @@ class Machine(Sized, Iterable, Container):
                 self._connections[i] = connection
                 ev = self._thread_events[i]
                 ev.set()
-            for i in range(len(self._connections)):
+            for i in range(nconnections):
                 t = threading.Thread(target=connection_wrapper, args=(i,))
                 t.start()
-                # TODO: delegate mds.Connection() to a separate thread and utilize lock objects
-                # connection = mds.Connection('{}:{}'.format(hostname, port))
-                # connection.tree = None
-                # self._connections[i] = connection
         # event_server = EVENT_SERVERS[self._name]
         # self._eventConnection = mds.Connection('{}:{}'.format(event_server['hostname'],
         #                                                       event_server['port']))
