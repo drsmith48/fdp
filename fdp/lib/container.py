@@ -172,7 +172,7 @@ class Container(object):
         attr = getattr(self._parent, attribute)
         if 'Shot' in str(type(attr)):
             raise AttributeError("Attribute '{}' not found".format(attribute))
-        if Container in attr.__class__.mro() and attribute[0] is not '_':
+        if Container in attr.__class__.__mro__ and attribute[0] != '_':
             raise AttributeError("Attribute '{}' not found".format(attribute))
         if inspect.ismethod(attr):
             return types.MethodType(attr.__func__, self)
@@ -188,7 +188,7 @@ class Container(object):
             self._dynamic_containers = {}
             for container in files:
                 subcontainer_dir = os.path.join(container_dir, container)
-                if container[0] is not '_' and os.path.isdir(subcontainer_dir):
+                if container[0] != '_' and os.path.isdir(subcontainer_dir):
                     self._dynamic_containers[container] = None
             # self._dynamic_containers = {container: None for container in
             #                             files if os.path.isdir(
@@ -212,7 +212,7 @@ class Container(object):
         if Signal not in self.__class__.mro():
             items.extend(list(self._dynamic_containers.keys()))
         return [item for item in set(items).difference(self._base_items)
-                if item[0] is not '_']
+                if item[0] !=  '_']
 
     def __iter__(self):
         if not len(self._signals):

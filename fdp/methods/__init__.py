@@ -14,6 +14,7 @@ from .listmethods import listSignals, listMethods, listContainers, listAttribute
 from .info import info, isSignal, isContainer, isAxis
 from .fft import fft, plotfft
 from .timeindex import getTimeIndex
+#from .crosssignal import CrossSignal as crosssignal
 
 __all__ = ['plot', '_netcat',
            'listSignals', 'listMethods', 'listContainers', 'listAttributes',

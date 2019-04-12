@@ -81,7 +81,8 @@ class CrossSignal(object):
                  offsetdc=False, normalizetodc=False, degrees=True,
                  fmin=None, fmax=None, numfilttaps=None, sawteethtimes=None,
                  sawteethbins=0):
-
+        signal1[:]
+        signal2[:]
         self.signal1 = signal1
         self.signal2 = signal2
         self.signal1time = signal1.time
