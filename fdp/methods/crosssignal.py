@@ -127,9 +127,9 @@ class CrossSignal(object):
         self.calc_crosspower()
         self.calc_crossphase()
         self.calc_coherence()
-        self.calc_error()
         if normalizetodc:
             self.apply_normalize_to_dc()
+        self.calc_error()
 
         # Calculate correlations
         self.calc_correlation_fft()
@@ -205,7 +205,7 @@ class CrossSignal(object):
 
             if self.fmin is None:
                 filttype = 'lowpass'
-                self.fmin = self.fNyquist / 2  # Placeholder valid frequency
+                self.fmin = self.fNyquist * 0.0 + 400
             else:
                 self.fmin *= 1000
 
@@ -349,6 +349,18 @@ class CrossSignal(object):
         self.crosspower = np.absolute(self.csd)
         self.crosspower_binavg = np.absolute(self.csd_binavg)
 
+    def apply_normalize_to_dc(self):
+        'Normalize by dividing by the zero frequency value'
+
+        for i in range(self.numbins):
+            self.asd1[:, i] /= self.asd1[0, i]
+            self.asd2[:, i] /= self.asd2[0, i]
+            self.crosspower[:, i] /= self.crosspower[0, i]
+
+        self.asd1_binavg /= self.asd1_binavg[0]
+        self.asd2_binavg /= self.asd2_binavg[0]
+        self.crosspower_binavg /= self.crosspower_binavg[0]
+
     def calc_crossphase(self):
         """
         Calculate the cross phase (phase angle of cross spectral density)
@@ -419,18 +431,6 @@ class CrossSignal(object):
 
         # Use of law of propagation of uncertainty to calculate coherence error
         self.coherence_error = self.mscoherence_error / (2 * self.coherence)
-
-    def apply_normalize_to_dc(self):
-        'Normalize by dividing by the zero frequency value'
-
-        for i in range(self.numbins):
-            self.asd1[:, i] /= self.asd1[0, i]
-            self.asd2[:, i] /= self.asd2[0, i]
-            self.crosspower[:, i] /= self.crosspower[0, i]
-
-        self.asd1_binavg /= self.asd1_binavg[0]
-        self.asd2_binavg /= self.asd2_binavg[0]
-        self.crosspower_binavg /= self.crosspower_binavg[0]
 
     def calc_correlation_fft(self):
         """

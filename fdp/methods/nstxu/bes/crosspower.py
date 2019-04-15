@@ -55,13 +55,16 @@ def plotcrosspower(container, *args, **kwargs):
         pcm = ax.pcolormesh(cs.times,
                             cs.freqs[mask],
                             logcrosspower,
-                            cmap=plt.cm.YlGnBu)
-        pcm.set_clim([logcrosspower.max() - 100, logcrosspower.max() - 20])
+#                            cmap=plt.cm.YlGnBu,
+#                            cmap=plt.cm.gnuplot2_r,
+                            cmap=plt.cm.afmhot_r,
+                            )
+        pcm.set_clim([logcrosspower.max() - 40, logcrosspower.max()-10])
         cb = plt.colorbar(pcm, ax=ax)
         cb.set_label(r'$10\,\log_{10}(Crosspower)$ $(V^2/Hz)$')
         ax.set_xlabel('Time (s)')
         ax.set_ylabel('Frequency (kHz)')
-        ax.set_title('{} -- {} -- {}/{} -- Crosspower'.format(
+        ax.set_title('{} | {} | {}/{}'.format(
             container.shot,
             container._name.upper(),
             cs.signal1name.upper(),
@@ -78,11 +81,12 @@ def plotcrosspower(container, *args, **kwargs):
         ax.set_yscale('log')
         ax.set_xlabel('Frequency (kHz)')
         ax.set_ylabel(r'$10\,\log_{10}(Crosspower)$ $(V^2/Hz)$')
-        ax.set_title('{} -- {} -- {}/{} -- Crosspower'.format(
+        ax.set_title('{} | {} | {}/{} | {:.3f}-{:.3f} s'.format(
             container.shot,
             container._name.upper(),
             cs.signal1name.upper(),
-            cs.signal2name.upper()))
+            cs.signal2name.upper(),
+            cs.tmin, cs.tmax))
     plt.tight_layout()
     return cs
 
@@ -117,11 +121,11 @@ def plotcrossphase(container, *args, **kwargs):
                             cmap=plt.cm.RdBu)
         pcm.set_clim([-50, 300])
         cb = plt.colorbar(pcm, ax=ax)
-        cb.set_label(r'Angle (' + units + ')')
+        cb.set_label(r'Crossphase (' + units + ')')
         ax.set_ylim([fmin, fmax])
         ax.set_xlabel('Time (s)')
         ax.set_ylabel('Frequency (kHz)')
-        ax.set_title('{} -- {} -- {}/{} -- Crossphase'.format(
+        ax.set_title('{} | {} | {}/{}'.format(
             container.shot,
             container._name.upper(),
             cs.signal1name.upper(),
@@ -135,12 +139,13 @@ def plotcrossphase(container, *args, **kwargs):
         ax.fill_between(cs.freqs[mask], crossphase - stdev, crossphase + stdev,
                         alpha=0.5, linewidth=0, facecolor='black')
         ax.set_xlabel('Frequency (kHz)')
-        ax.set_ylabel('Angle (' + units + ')')
-        ax.set_title('{} -- {} -- {}/{} -- Crossphase'.format(
+        ax.set_ylabel('Crossphase (' + units + ')')
+        ax.set_title('{} | {} | {}/{} | {:.3f}-{:.3f} s'.format(
             container.shot,
             container._name.upper(),
             cs.signal1name.upper(),
-            cs.signal2name.upper()))
+            cs.signal2name.upper(),
+            cs.tmin, cs.tmax))
     plt.tight_layout()
     return cs
 
@@ -167,12 +172,14 @@ def plotcoherence(container, *args, **kwargs):
     ax.fill_between(cs.freqs[mask], coherence - stdev, coherence + stdev,
                     alpha=0.5, linewidth=0, facecolor='black')
     ax.set_ylim([0, 1])
+    ax.set_ylabel('Coherence')
     ax.set_xlabel('Frequency (kHz)')
-    ax.set_title('{} -- {} -- {}/{} -- Coherence'.format(
+    ax.set_title('{} | {} | {}/{} | {:.3f}-{:.3f} s'.format(
         container.shot,
         container._name.upper(),
         cs.signal1name.upper(),
-        cs.signal2name.upper()))
+        cs.signal2name.upper(),
+        cs.tmin, cs.tmax))
     plt.tight_layout()
     return cs
 
@@ -193,10 +200,12 @@ def plotcorrelation(container, *args, **kwargs):
         ax.plot((0, 0), (-1, 1), 'k-')
     ax.set_xlim([-250, 250])
     ax.set_xlabel('Time delay (us)')
-    ax.set_title('{} -- {} -- {}/{} -- Time-lag cross-correlation'.format(
+    ax.set_ylabel('Time-lag cross-correlation')
+    ax.set_title('{} | {} | {}/{} | {:.3f}-{:.3f} s'.format(
         container.shot,
         container._name.upper(),
         cs.signal1name.upper(),
-        cs.signal2name.upper()))
+        cs.signal2name.upper(),
+        cs.tmin, cs.tmax))
     plt.tight_layout()
     return cs

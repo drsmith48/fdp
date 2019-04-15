@@ -216,7 +216,7 @@ def fft(obj, *args, **kwargs):
         return ffts
 
 
-def plotfft(signal, fmax=None, *args, **kwargs):
+def plotfft(signal, fmin=5, fmax=500, *args, **kwargs):
     """
     Plot spectrogram
     """
@@ -229,8 +229,10 @@ def plotfft(signal, fmax=None, *args, **kwargs):
     pcm = ax.pcolormesh(sigfft.time,
                         sigfft.freq,
                         sigfft.logpsd.transpose(),
-                        cmap=plt.cm.YlGnBu)
-    pcm.set_clim([sigfft.logpsd.max() - 100, sigfft.logpsd.max() - 20])
+#                        cmap=plt.cm.gnuplot2_r,
+                        cmap=plt.cm.afmhot_r,
+                        )
+    pcm.set_clim([sigfft.logpsd.max() - 50, sigfft.logpsd.max() - 20])
     cb = plt.colorbar(pcm, ax=ax)
     cb.set_label(r'$10\,\log_{10}(|FFT|^2)$ $(V^2/Hz)$')
     ax.set_xlabel('Time (s)')
@@ -238,11 +240,10 @@ def plotfft(signal, fmax=None, *args, **kwargs):
     tmin = kwargs.get('tmin', 0)
     tmax = kwargs.get('tmax', 2)
     ax.set_xlim([tmin, tmax])
-    if fmax:
-        if sigfft.iscomplexsignal:
-            ax.set_ylim([-fmax, fmax])
-        else:
-            ax.set_ylim([0, fmax])
+    if sigfft.iscomplexsignal:
+        ax.set_ylim([-fmax, fmax])
+    else:
+        ax.set_ylim([fmin, fmax])
     ax.set_title('{} | {} | {}'.format(
                  sigfft.shot,
                  sigfft.parentname.upper(),
