@@ -407,7 +407,7 @@ def decimate_plot(data, pixels=2000):
     return np.sort(decimate_index)
 
 
-@nb.autojit(nopython=True)
+@nb.jit(nopython=True)
 def numba_decimate(data, pixels=2000):
     # returns a decimated indices array to visually approximate a plot with
     # points >> pixels
@@ -443,7 +443,7 @@ def numba_decimate(data, pixels=2000):
     return output
 
 
-@nb.autojit(nopython=True)
+@nb.jit(nopython=True)
 def numba_decimate_stride(data, stride):
     # returns a decimated indices array to visually approximate a plot with
     # points >> pixels

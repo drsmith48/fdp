@@ -46,7 +46,7 @@ class Signal(np.ndarray):
         return obj
 
     def __init__(self, **kwargs):
-        # self.mdsshape = self._get_mdsshape()
+        self.mdsshape = self._get_mdsshape()
         pass
 
     def __array_finalize__(self, obj):

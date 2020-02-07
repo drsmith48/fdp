@@ -162,10 +162,11 @@ class Machine(Sized, Iterable, Container):
         self._connections.insert(0, connection)
         return connection
     
-    def __del__(self):
-        print('disconnecting from MDSplus')
-        for connection in self._connections:
-            connection.disconnect()
+    # def __del__(self):
+    #     print('disconnecting from MDSplus')
+        # for connection in self._connections:
+            # print(dir(connection))
+            # connection.closeTree()
 
     def _get_mdsshape(self, signal):
         # if signal.shot is 0:

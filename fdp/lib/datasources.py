@@ -23,14 +23,14 @@ def canonicalMachineName(machine=''):
 
 MDS_SERVERS = {
     'nstxu': {'hostname': 'skylark.pppl.gov',
-              'port': '8000'},
+              'port': '8506'},
     'diiid': {'hostname': 'atlas.gat.com',
               'port': '8000'}
 }
 
 EVENT_SERVERS = {
     'nstxu': {'hostname': 'skylark.pppl.gov',
-              'port': '8000'},
+              'port': '8506'},
     'diiid': {'hostname': 'atlas.gat.com',
               'port': '8000'},
     'ltx': {'hostname': 'lithos.pppl.gov',
