@@ -74,7 +74,7 @@ def test_filter_xp(setup_nstx):
     assert len(xp1037) == 24
     for shot in xp1037:
         pass
-    #xp1037.logbook()
+    # xp1037.logbook()
     xp1037.shotlist()
     dir(xp1037)
     keys = list(xp1037._shots.keys())

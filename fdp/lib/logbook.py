@@ -41,7 +41,7 @@ class Logbook(object):
             'SELECT dbkey, username, rundate, shot, xp, topic, text, entered, '
             'voided FROM {} WHERE voided IS null').format(self._credentials['table'])
         url = "\\".join([self._credentials['server'],
-                        self._credentials['instance']])
+                         self._credentials['instance']])
         try:
             self._logbook_connection = pymssql.connect(
                 server=url,

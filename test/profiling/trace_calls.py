@@ -1,10 +1,14 @@
-import pathlib, fdp, os, sys
+import pathlib
+import fdp
+import os
+import sys
 import numpy as np
 
 fdp_module_path = pathlib.Path(fdp.__path__[0])
 mds_path = pathlib.Path(os.environ['MDSPLUS']) / 'mdsobjects' / 'python'
 python_path = pathlib.Path(sys.base_prefix) / 'lib'
 np_path = pathlib.Path(np.__path__[0])
+
 
 def shorten_filename(fn):
     try:
@@ -21,6 +25,7 @@ def shorten_filename(fn):
                 except:
                     pass
     return fn
+
 
 def trace_lines(frame, event, arg):
     if event not in ['return']:
@@ -61,7 +66,7 @@ def trace_calls(frame, event, arg):
         # Ignore write calls from print statements
         return
     if (fdp_module_path.as_posix() not in call_filename.as_posix()) or \
-        (fdp_module_path.as_posix() not in caller_filename.as_posix()):
+            (fdp_module_path.as_posix() not in caller_filename.as_posix()):
         # ignore calls fully outside of the FDP package
         if caller_name == '<module>':
             print('Line {} in {}'.format(caller_lineno, caller_filename.name))
@@ -79,9 +84,9 @@ def trace_calls(frame, event, arg):
     if 'MDSplus' in call_filename.as_posix():
         return
     print('   Calling  {}  in  {}  from line  {}  in  {}  in  {}'.format(
-            call_name,
-            call_shortfn.as_posix(),
-            caller_lineno,
-            caller_name,
-            caller_shortfn.as_posix()))
+        call_name,
+        call_shortfn.as_posix(),
+        caller_lineno,
+        caller_name,
+        caller_shortfn.as_posix()))
     return trace_lines

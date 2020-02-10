@@ -17,6 +17,7 @@ FDP_DIR = dirname(dirname(abspath(__file__)))
 def simplefilter(*args):
     warnings.simplefilter(*args)
 
+
 class FdpError(Exception):
     """
     Error class for FDF package

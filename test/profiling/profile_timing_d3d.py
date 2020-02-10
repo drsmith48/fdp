@@ -2,16 +2,17 @@
 Profile execution time of function calls with cProfile (not line-by-line timing)
 """
 
-import cProfile, pstats
+import cProfile
+import pstats
 import fdp
 import time
 
 pro = cProfile.Profile(builtins=False)
 
 
-d3d = fdp.D3D() # ~ 4 ms exec time
-shot = d3d.s176778 # ~ 1 ms exec time
-mag = shot.magnetics # 7 ms exec time
+d3d = fdp.D3D()  # ~ 4 ms exec time
+shot = d3d.s176778  # ~ 1 ms exec time
+mag = shot.magnetics  # 7 ms exec time
 ip = mag.ip
 time.sleep(5)
 pro.enable()

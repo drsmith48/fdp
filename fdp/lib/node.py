@@ -31,7 +31,7 @@ class Node(object):
         return str(self._data)
 
     def __getattr__(self, attribute):
-        if attribute is '_parent':
+        if attribute == '_parent':
             raise AttributeError("'{}' object has no attribute '{}'".format(
                                  type(self), attribute))
         if self._parent is None:

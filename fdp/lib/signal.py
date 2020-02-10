@@ -11,15 +11,13 @@ Created on Tue Jun 23 2015
 @author: hyuh
 """
 from __future__ import print_function
+from .globals import FdpError
+import numpy as np
+import types
+import inspect
 import sys
 if sys.version_info > (3,):
     long = int
-
-import inspect
-import types
-import numpy as np
-
-from .globals import FdpError
 
 
 class Signal(np.ndarray):
@@ -87,7 +85,7 @@ class Signal(np.ndarray):
                 if objslic is not None:
                     # slice axis according to _slic
                     obj_axis = getattr(obj, axis)
-                    if isinstance(objslic, (slice,list,np.ndarray)):
+                    if isinstance(objslic, (slice, list, np.ndarray)):
                         # logic for 1D arrays
                         setattr(self, axis, obj_axis[objslic])
                     elif isinstance(objslic, tuple):
@@ -123,7 +121,7 @@ class Signal(np.ndarray):
         #         pass
 
         # if _deltmpattr:
-        for attrname in ['_slic','_fname','_fargs','_fkwargs']:
+        for attrname in ['_slic', '_fname', '_fargs', '_fkwargs']:
             for o in [self, obj]:
                 if hasattr(o, attrname):
                     delattr(o, attrname)
@@ -194,7 +192,7 @@ class Signal(np.ndarray):
         return self._root._get_mdsshape(self)
 
     def __getattr__(self, attribute):
-        if attribute is '_parent' or self._parent is None:
+        if attribute == '_parent' or self._parent is None:
             raise AttributeError("'{}' object has no attribute '{}'".format(
                                  type(self), attribute))
         attr = getattr(self._parent, attribute)
@@ -204,11 +202,11 @@ class Signal(np.ndarray):
             return attr
 
     def __repr__(self):
-#        self._get_mdsdata()
+        #        self._get_mdsdata()
         return super(Signal, self).__repr__()
 
     def __str__(self):
-#        self._get_mdsdata()
+        #        self._get_mdsdata()
         return super(Signal, self).__str__()
 
     def __getslice__(self, start, stop):
@@ -233,7 +231,7 @@ class Signal(np.ndarray):
             axis = getattr(self, axis_name)
             try:
                 axis_indices = [np.abs(value - axis[:]).argmin()
-                             for value in axis_values]
+                                for value in axis_values]
                 slc[iaxis] = slice(axis_indices[0], axis_indices[1])
             except TypeError:
                 axis_indices = np.abs(axis_values - axis[:]).argmin()

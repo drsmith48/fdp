@@ -43,7 +43,7 @@ profile.add_function(fdp.lib.signal.Signal.__array_finalize__)
 
 d3d = fdp.D3D()
 shot = d3d.s176778
-mag = shot.magnetics # 50 ms exec time
+mag = shot.magnetics  # 50 ms exec time
 ip = mag.ip
 time.sleep(4)
 profile.enable()

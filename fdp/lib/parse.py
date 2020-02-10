@@ -14,16 +14,19 @@ from .globals import FDP_DIR
 
 METHODS_DIR = os.path.join(FDP_DIR, 'methods')
 
+
 def parse_top(obj):
     module = 'methods'
     parse_methods(obj, module=module, method_path=FDP_DIR,
                   module_chain=module)
 
+
 def parse_machine(obj):
     machine_name = obj._name
     module_chain = '.'.join(['methods', machine_name])
     parse_methods(obj, module=machine_name, method_path=METHODS_DIR,
-                  module_chain=module_chain)    
+                  module_chain=module_chain)
+
 
 def parse_submachine(obj):
     branch = obj._get_branch()
@@ -32,9 +35,10 @@ def parse_submachine(obj):
     machine = obj._root._name
     method_path = os.path.join(METHODS_DIR, machine, *branch_list)
     module_chain = '.'.join(['methods', machine, branch])
-    parse_methods(obj, module=module, method_path=method_path, 
+    parse_methods(obj, module=module, method_path=method_path,
                   module_chain=module_chain)
-        
+
+
 def parse_methods(obj=None, module='', method_path='', module_chain=''):
     if not os.path.exists(os.path.join(method_path, module)):
         return
@@ -45,12 +49,14 @@ def parse_methods(obj=None, module='', method_path='', module_chain=''):
         method = getattr(method_object, method_name)
         setattr(obj, method_name, method)
 
+
 def parse_defaults(element):
     keys = list(element.keys())
     method_defaults = '_{}_defaults'.format(element.get('method'))
     keys.remove('method')
     defaults_dict = {key: element.get(key) for key in keys}
     return method_defaults, defaults_dict
+
 
 def fill_signal_dict(name=None, units=None, axes=None,
                      mdspath=None, mdstree=None, mdsshape=None,
@@ -64,7 +70,7 @@ def fill_signal_dict(name=None, units=None, axes=None,
             'units': units,
             'axes': axes,
             'point_axes': [],
-            'mdsshape':None,
+            'mdsshape': None,
             'mdsnode': mdspath,
             'mdstree': mdstree,
             '_dim_of': dim_of,
@@ -157,7 +163,7 @@ def parse_axes(obj, element):
         axes = [axis.strip() for axis in element.get('axes').split(',')]
         if 'time' in axes:
             time_ind = axes.index('time')
-            if time_ind is not 0:
+            if time_ind != 0:
                 transpose = list(range(len(axes)))
                 transpose.pop(time_ind)
                 transpose.insert(0, time_ind)

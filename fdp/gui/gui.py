@@ -5,18 +5,17 @@ Created on Sat Jul 16 11:10:48 2016
 @author: drsmith
 """
 
+from ..lib.globals import TKROOT, FdpWarning
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import matplotlib as mpl
+import threading
+import tkinter.ttk
+import tkinter as tk
+from warnings import warn
 from future import standard_library
 standard_library.install_aliases()
-from warnings import warn
-import tkinter as tk
-import tkinter.ttk
-import threading
 
-import matplotlib as mpl
 # mpl.use('TkAgg')
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-
-from ..lib.globals import TKROOT, FdpWarning
 
 
 class BaseGui(threading.Thread):
@@ -48,9 +47,9 @@ class BaseGui(threading.Thread):
             self.topwindow = tk.Toplevel()
         self.topwindow.title(self.title)
         self.controlframe = tkinter.ttk.Frame(master=self.topwindow,
-                                      borderwidth=3,
-                                      relief='ridge',
-                                      padding=2)
+                                              borderwidth=3,
+                                              relief='ridge',
+                                              padding=2)
         self.controlframe.pack(side='left', fill='y')
         # dummy frame to set controlframe width
         controlwidth = tkinter.ttk.Frame(master=self.controlframe, width=125)
@@ -61,8 +60,8 @@ class BaseGui(threading.Thread):
 
         self.figure = mpl.figure.Figure()
         self.figureframe = tkinter.ttk.Frame(master=self.topwindow,
-                                     borderwidth=3,
-                                     relief='ridge')
+                                             borderwidth=3,
+                                             relief='ridge')
         self.figureframe.pack(side='left', expand=1, fill='both')
         self.canvas = FigureCanvasTkAgg(self.figure,
                                         master=self.figureframe)
@@ -118,8 +117,8 @@ class BaseGui(threading.Thread):
         frame = tkinter.ttk.Frame(master=self.controlframe, padding=2)
         frame.pack(side='top', fill='x')
         button = tkinter.ttk.Button(master=frame,
-                            text=text,
-                            command=command)
+                                    text=text,
+                                    command=command)
         button.pack(side='left')
         entry = tkinter.ttk.Entry(master=frame, width=width)
         entry.pack(side='right')
@@ -152,7 +151,7 @@ class BaseGui(threading.Thread):
         frame = tkinter.ttk.Frame(master=self.controlframe, padding=2)
         frame.pack(side='bottom', fill='x')
         button = tkinter.ttk.Button(master=frame, text=text,
-                            command=command,
-                            width=width)
+                                    command=command,
+                                    width=width)
         button.pack(side='left')
         return button

@@ -6,9 +6,10 @@ Created on Wed Nov 25 12:05:14 2015
 """
 from __future__ import print_function
 from builtins import str, map, range
-from collections import Sized, Iterable, Container, deque
+from collections.abc import Sized, Iterable, Container
+from collections import deque
 import os
-from warnings import warn
+#from warnings import warn
 import numpy as np
 import MDSplus as mds
 import threading
@@ -16,8 +17,8 @@ import threading
 from .logbook import Logbook
 from .parse import parse_top, parse_machine
 from .shot import Shot
-from .globals import FDP_DIR, FdpError, FdpWarning
-from .datasources import canonicalMachineName, MDS_SERVERS, EVENT_SERVERS
+from .globals import FDP_DIR, FdpError
+from .datasources import canonicalMachineName, MDS_SERVERS
 
 
 def machineClassFactory(name=''):
@@ -66,6 +67,7 @@ class Machine(Sized, Iterable, Container):
             for i in range(nconnections):
                 self._connections.append(None)
                 self._thread_events.append(threading.Event())
+
             def connection_wrapper(i):
                 connection = mds.Connection('{}:{}'.format(hostname, port))
                 connection.tree = None
@@ -85,7 +87,7 @@ class Machine(Sized, Iterable, Container):
             self._modules = []
             for module in os.listdir(machine_diag_dir):
                 diag_dir = os.path.join(machine_diag_dir, module)
-                if os.path.isdir(diag_dir) and module[0] is not '_':
+                if os.path.isdir(diag_dir) and module[0] != '_':
                     self._modules.append(module)
 
     def _validate_shot(self, shot):
@@ -102,7 +104,7 @@ class Machine(Sized, Iterable, Container):
             # pdb.set_trace()
             raise AttributeError('bad attr: {}'.format(attr_name))
             # raise
-    
+
     def __getitem__(self, shot):
         self._validate_shot(shot)
         return self._shots[shot]
@@ -161,12 +163,12 @@ class Machine(Sized, Iterable, Container):
         # finally:
         self._connections.insert(0, connection)
         return connection
-    
+
     # def __del__(self):
     #     print('disconnecting from MDSplus')
         # for connection in self._connections:
-            # print(dir(connection))
-            # connection.closeTree()
+        # print(dir(connection))
+        # connection.closeTree()
 
     def _get_mdsshape(self, signal):
         # if signal.shot is 0:
@@ -174,8 +176,10 @@ class Machine(Sized, Iterable, Container):
         #     return
         connection = self._get_connection(signal.shot, signal.mdstree)
         try:
-            usage_code = connection.get('getnci({},"USAGE")'.format(signal.mdsnode)).data()
-            length = connection.get('getnci({},"LENGTH")'.format(signal.mdsnode)).data()
+            usage_code = connection.get(
+                'getnci({},"USAGE")'.format(signal.mdsnode)).data()
+            length = connection.get(
+                'getnci({},"LENGTH")'.format(signal.mdsnode)).data()
             if usage_code != 6 or length < 1:
                 raise ValueError
             return connection.get('shape({})'.format(signal.mdsnode)).data()
@@ -192,7 +196,8 @@ class Machine(Sized, Iterable, Container):
             if 'Signal' in str(type(signal)):
                 mds_address = 'ptdata("{}", {:d})'.format(signal.mdsnode, shot)
             elif 'Axis' in str(type(signal)):
-                mds_address = 'dim_of(ptdata("{}", {:d}))'.format(signal.mdsnode, shot)
+                mds_address = 'dim_of(ptdata("{}", {:d}))'.format(
+                    signal.mdsnode, shot)
             else:
                 raise FdpError('bad mds data')
         else:
@@ -254,7 +259,8 @@ class Machine(Sized, Iterable, Container):
         if not quiet:
             for shotnum in shotlist:
                 shot = self[shotnum]
-                print('{} in XP {} on {}'.format(shot.shot, shot.xp, shot.date))
+                print('{} in XP {} on {}'.format(
+                    shot.shot, shot.xp, shot.date))
         return shotlist
 
     def filter(self, date=None, xp=None):
@@ -302,7 +308,8 @@ class Machine(Sized, Iterable, Container):
                 try:
                     container = container_queue.popleft()
                     container._set_dynamic_containers()
-                    container_queue.extend(list(container._containers.values()))
+                    container_queue.extend(
+                        list(container._containers.values()))
                     if obj is None or obj.lower() == 'signal':
                         for signal in list(container._signals.values()):
                             if signal._contains(tag):
@@ -392,5 +399,6 @@ class ImmutableMachine(Sized, Iterable, Container):
         if not quiet:
             for shotnum in shotlist:
                 shot = self[shotnum]
-                print('{} in XP {} on {}'.format(shot.shot, shot.xp, shot.date))
+                print('{} in XP {} on {}'.format(
+                    shot.shot, shot.xp, shot.date))
         return shotlist

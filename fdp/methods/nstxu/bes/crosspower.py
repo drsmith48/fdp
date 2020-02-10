@@ -55,8 +55,8 @@ def plotcrosspower(container, *args, **kwargs):
         pcm = ax.pcolormesh(cs.times,
                             cs.freqs[mask],
                             logcrosspower,
-#                            cmap=plt.cm.YlGnBu,
-#                            cmap=plt.cm.gnuplot2_r,
+                            #                            cmap=plt.cm.YlGnBu,
+                            #                            cmap=plt.cm.gnuplot2_r,
                             cmap=plt.cm.afmhot_r,
                             )
         pcm.set_clim([logcrosspower.max() - 40, logcrosspower.max()-10])

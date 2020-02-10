@@ -535,13 +535,13 @@ class CrossSignal(object):
 
             # Delete bins before and after the sawtooth crash
             self.csd = np.delete(self.csd, list(range(index - self.sawteethbins,
-                                 index + self.sawteethbins + 1)), axis=-1)
+                                                      index + self.sawteethbins + 1)), axis=-1)
             self.asd1 = np.delete(self.asd1, list(range(index - self.sawteethbins,
-                                  index + self.sawteethbins + 1)), axis=-1)
+                                                        index + self.sawteethbins + 1)), axis=-1)
             self.asd2 = np.delete(self.asd2, list(range(index - self.sawteethbins,
-                                  index + self.sawteethbins + 1)), axis=-1)
+                                                        index + self.sawteethbins + 1)), axis=-1)
             self.times = np.delete(self.times, list(range(index - self.sawteethbins,
-                                   index + self.sawteethbins + 1)), axis=-1)
+                                                          index + self.sawteethbins + 1)), axis=-1)
 
     def phase_slope(self, fstart, fend):
         """
@@ -564,7 +564,7 @@ class CrossSignal(object):
 
         # Calculate crossphase slope over specified frequency range
         slope, intercept, _, _, _ = linregress(self.freqs[istart:iend + 1]
-            * 1000, self.crossphase_binavg[istart:iend + 1])
+                                               * 1000, self.crossphase_binavg[istart:iend + 1])
 
         # Convert slope units to rad/Hz and return
         if self.degrees:

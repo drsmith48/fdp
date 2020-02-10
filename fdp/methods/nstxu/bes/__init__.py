@@ -22,7 +22,7 @@ configuration with channels 1-8 spanning the radial range R = 129-146 cm.
 #from .configuration import loadConfig
 from .crosspower import plotcrosspower, plotcrossphase, plotcoherence
 from .crosspower import crosssignal, plotcorrelation
-from .postprocess import postprocess as _postprocess
+#from .postprocess import postprocess as _postprocess
 
 __all__ = ['crosssignal',
            'plotcorrelation',
@@ -30,9 +30,9 @@ __all__ = ['crosssignal',
            'plotcoherence',
            'plotcrossphase',
            # '_postprocess',
-            ]
+           ]
 
-#__all__ = ['fft', 'plotfft', 'powerspectrum',
+# __all__ = ['fft', 'plotfft', 'powerspectrum',
 #           'animate', 'loadConfig', 'movie',
 #           'gui',
 #           'crosssignal', 'plotcrosspower', 'plotcoherence', 'plotcrossphase',

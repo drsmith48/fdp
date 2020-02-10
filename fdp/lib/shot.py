@@ -8,15 +8,15 @@ from __future__ import print_function
 from builtins import str, range
 import inspect
 import types
-import numpy as np
-from collections import MutableMapping
+#import numpy as np
+from collections.abc import MutableMapping
 
 from .container import containerClassFactory
 
 
 class Shot(MutableMapping):
 
-#    _modules = None
+    #    _modules = None
     _logbook = None
     _machine = None
 
@@ -134,10 +134,10 @@ class Shot(MutableMapping):
             data = None
             connection = self._get_connection(self.shot, tree)
             try:
-                data = connection.get('\{}::userid'.format(tree)).value
+                data = connection.get('\\{}::userid'.format(tree)).value
             except:
                 pass
-            if data and data is not '*':
+            if data and data != '*':
                 tree_exists.append(tree)
         self._efits = tree_exists
         return self._efits

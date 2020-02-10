@@ -25,8 +25,6 @@ from ..lib.globals import FdpWarning
 # pg.mkQApp()
 
 
-
-
 def plot1d(signal, time=None, tmin=0.0, tmax=None, axes=None, **kwargs):
     xaxis = getattr(signal, signal.axes[0])
     kwargs.pop('stack', None)
@@ -42,15 +40,14 @@ def plot1d(signal, time=None, tmin=0.0, tmax=None, axes=None, **kwargs):
                                          signal.shot))
     if tmax is not None:
         ax.set_xlim(tmin, tmax)
-    if time is not None and signal.axes[0]=='time':
+    if time is not None and signal.axes[0] == 'time':
         if hasattr(time, '__iter__'):
-            if len(time)>1:
+            if len(time) > 1:
                 ax.set_xlim(time[0], time[1])
             else:
-                ax.set_xlim(-100,time[0])
+                ax.set_xlim(-100, time[0])
         else:
-            ax.set_xlim(-100,time)
-
+            ax.set_xlim(-100, time)
 
 
 def plot2d(signal, tmin=0.0, tmax=None, axes=None, **kwargs):
@@ -85,7 +82,7 @@ def plot2d(signal, tmin=0.0, tmax=None, axes=None, **kwargs):
 def set_range(data, default_min, default_max):
     max_range = np.array(data).max()
     min_range = np.array(data).min()
-    if default_max is 1. and default_min is 0.:
+    if default_max == 1. and default_min == 0.:
         return min_range, max_range
     hist_data = np.histogram(data, bins=20000)
     cumulative = hist_data[0].cumsum()
@@ -122,15 +119,15 @@ def plot(signal, fig=None, axes=None, **kwargs):
         return
 
     signal[:]
-    if signal.size==0:
+    if signal.size == 0:
         warn("Empty signal {}".format(signal.mdsnode), FdpWarning)
     signal.time[:]
-    if signal.time.size==0:
+    if signal.time.size == 0:
         warn("Empty signal.time {}".format(signal.time.mdsnode), FdpWarning)
 
     dims = signal.ndim
     multi_axis = kwargs.get('multi', None)
-    if multi_axis is 'shot':
+    if multi_axis == 'shot':
         #plot_multishot(signal, **kwargs)
         #plt.title(signal._name, fontsize=20)
         return
@@ -231,7 +228,7 @@ class PlotAxes(plt.Axes):
         index_list = []
         stride = kwargs.get('stride', 0)
         if stride:
-            stride_levels = np.floor(np.log(signal.size // 3000) // 
+            stride_levels = np.floor(np.log(signal.size // 3000) //
                                      np.log(stride))
             index_list = [numba_decimate_stride(signal, int(level))
                           for level in np.arange(stride_levels) + 1]
@@ -274,8 +271,8 @@ class PlotAxes(plt.Axes):
         kwargs.pop('stack', None)
         stride_level = 0
         if stride:
-            stride_level = int(np.floor(np.log((ixmax - ixmin) // nx) 
-                // np.log(stride)))
+            stride_level = int(np.floor(np.log((ixmax - ixmin) // nx)
+                                        // np.log(stride)))
             if stride_level:
                 dec_index = index_list[stride_level - 1]
                 dec_min = np.searchsorted(dec_index, ixmin, side='left')

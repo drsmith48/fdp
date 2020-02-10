@@ -20,7 +20,6 @@ from ..lib.utilities import isSignal, isContainer
 from ..lib.globals import FdpWarning, FdpError
 
 
-
 class Fft(object):
     """
     Fft class
@@ -170,7 +169,8 @@ class Fft(object):
             ssfft[:, 1:old_div(self.power2, 2)] *= np.sqrt(2.0)
             self.fft = ssfft
             self.freq = self.freq[0:old_div(self.power2, 2) + 1].copy()
-            self.freq[old_div(self.power2, 2)] = -self.freq[old_div(self.power2, 2)]
+            self.freq[old_div(self.power2, 2)] = - \
+                self.freq[old_div(self.power2, 2)]
             # check integrated power (bin-wise)
             self.checkIntegratedPower()
 
@@ -188,7 +188,7 @@ class Fft(object):
 
     def checkIntegratedPower(self):
         intpowercheck = old_div(np.sum(np.square(np.absolute(self.fft)),
-                               axis=1), self.power2)
+                                       axis=1), self.power2)
         if not np.allclose(self.intpower, intpowercheck):
             raise FdpError('Integrated power mismatch')
 
@@ -229,7 +229,7 @@ def plotfft(signal, fmin=5, fmax=500, *args, **kwargs):
     pcm = ax.pcolormesh(sigfft.time,
                         sigfft.freq,
                         sigfft.logpsd.transpose(),
-#                        cmap=plt.cm.gnuplot2_r,
+                        #                        cmap=plt.cm.gnuplot2_r,
                         cmap=plt.cm.afmhot_r,
                         )
     pcm.set_clim([sigfft.logpsd.max() - 50, sigfft.logpsd.max() - 20])

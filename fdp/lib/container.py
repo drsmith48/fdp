@@ -23,6 +23,7 @@ from .signal import Signal
 
 _tree_dict = {}
 
+
 def initContainerClass(cls, module_tree, **kwargs):
     cls._name = module_tree.get('name')
     if cls not in cls._instances:
@@ -212,7 +213,7 @@ class Container(object):
         if Signal not in self.__class__.mro():
             items.extend(list(self._dynamic_containers.keys()))
         return [item for item in set(items).difference(self._base_items)
-                if item[0] !=  '_']
+                if item[0] != '_']
 
     def __iter__(self):
         if not len(self._signals):

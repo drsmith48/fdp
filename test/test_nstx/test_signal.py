@@ -1,4 +1,6 @@
 from __future__ import print_function
+
+
 def test_1d_signals(setup_shot):
     shot = setup_shot
     signals = [shot.bes.ch01,
@@ -15,7 +17,7 @@ def test_1d_signals(setup_shot):
         assert signal.size > 0
         assert hasattr(signal, 'time')
         assert signal.time.size > 0
-        #signal.plot()
+        # signal.plot()
         print(signal[0:9])
         signal.axes
         #signal(time=[0.1, 0.2])
@@ -27,5 +29,5 @@ def test_2d_signals(setup_shot):
                shot.chers.ti]
     for signal in signals:
         signal[:]
-        #signal.plot()
+        # signal.plot()
         signal[0, 0:9]
